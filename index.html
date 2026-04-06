@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PythonQuest — Aprendé Python de verdad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<style>
+:root {
+  --bg: #0d0e0f;
+  --bg2: #141618;
+  --bg3: #1c1f22;
+  --bg4: #222528;
+  --amber: #f5a623;
+  --amber-dim: #a06b10;
+  --amber-glow: rgba(245,166,35,0.12);
+  --green: #4ade80;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --purple: #c084fc;
+  --teal: #2dd4bf;
+  --text: #e8e0d0;
+  --text-dim: #7a7060;
+  --border: #2a2d30;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ══ HEADER ══ */
+#app-header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:52px;background:rgba(13,14,15,0.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0;
+}
+.logo-area{display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid var(--border);height:100%;}
+.logo-snake{font-size:20px;}
+.logo-text{font-family:var(--sans);font-weight:800;font-size:17px;color:var(--amber);letter-spacing:-0.5px;}
+.logo-text em{color:var(--text-dim);font-style:normal;font-weight:400;}
+
+/* Nav tabs */
+.main-nav{display:flex;height:100%;flex:1;}
+.nav-tab{
+  display:flex;align-items:center;gap:8px;
+  padding:0 22px;font-family:var(--mono);font-size:12px;
+  color:var(--text-dim);cursor:pointer;border:none;background:none;
+  border-right:1px solid var(--border);transition:all .2s;
+  position:relative;
+}
+.nav-tab:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.nav-tab.active{color:var(--amber);background:var(--amber-glow);}
+.nav-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--amber);}
+.nav-tab-icon{font-size:15px;}
+.nav-tab-label{font-size:11px;}
+
+.header-right{display:flex;align-items:center;gap:10px;padding:0 20px;margin-left:auto;}
+.hud-item{font-size:11px;color:var(--text-dim);border:1px solid var(--border);border-radius:4px;padding:3px 9px;display:flex;align-items:center;gap:5px;}
+.hud-item.amber{color:var(--amber);border-color:var(--amber-dim);}
+.hud-item.streak-active{color:#ff9500;border-color:#ff9500;}
+.lives-row{display:flex;gap:3px;font-size:14px;}
+.lh{transition:all .3s;}
+.lh.lost{filter:grayscale(1);opacity:0.25;transform:scale(0.8);}
+
+/* ══ VIEWS ══ */
+.view{position:fixed;inset:0;top:52px;overflow:hidden;display:none;}
+.view.active{display:flex;}
+
+/* ══════════════════════════════════
+   VIEW 1 — DESAFÍOS
+══════════════════════════════════ */
+#view-challenges{flex-direction:row;}
+
+.sidebar{
+  width:252px;min-width:252px;
+  border-right:1px solid var(--border);
+  background:var(--bg2);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.sidebar-header{padding:12px 16px 8px;font-size:9px;color:var(--text-dim);letter-spacing:2px;border-bottom:1px solid var(--border);}
+.module{border-bottom:1px solid var(--border);}
+.module-title{
+  padding:9px 14px;font-size:11px;color:var(--text);
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:background .15s;user-select:none;
+}
+.module-title:hover{background:var(--bg3);}
+.mod-prog{margin-left:auto;font-size:10px;color:var(--text-dim);}
+.mod-chev{font-size:9px;color:var(--text-dim);transition:transform .2s;}
+.module.open .mod-chev{transform:rotate(90deg);}
+.lesson-list{display:none;}
+.module.open .lesson-list{display:block;}
+.lesson-item{
+  padding:7px 14px 7px 32px;font-size:11px;color:var(--text-dim);
+  cursor:pointer;display:flex;align-items:center;gap:7px;
+  transition:all .15s;border-left:2px solid transparent;
+}
+.lesson-item:hover{color:var(--text);background:rgba(255,255,255,0.025);}
+.lesson-item.active{color:var(--amber);border-left-color:var(--amber);background:var(--amber-glow);}
+.lesson-item.done{color:var(--green);}
+.lesson-item.done::before{content:'✓';font-size:9px;}
+.lesson-item:not(.done)::before{content:'○';font-size:9px;opacity:0.4;}
+.lesson-item.active::before{content:'▶';font-size:8px;}
+
+.challenge-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ch-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.ch-kyu{display:inline-block;font-size:10px;padding:2px 8px;border-radius:3px;margin-bottom:6px;background:var(--amber-glow);color:var(--amber);border:1px solid var(--amber-dim);}
+.ch-title{font-family:var(--sans);font-size:19px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:6px;}
+.ch-desc{font-size:12px;color:var(--text-dim);line-height:1.8;}
+.ch-examples{margin-top:8px;background:var(--bg3);border-radius:4px;padding:9px 11px;font-size:12px;border-left:3px solid var(--amber-dim);}
+
+.editor-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.editor-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--bg3);border-bottom:1px solid var(--border);}
+.ed-file{font-size:10px;color:var(--text-dim);}
+.ed-badge{font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25);margin-left:6px;}
+.ed-actions{display:flex;gap:5px;margin-left:auto;}
+.btn{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:3px;cursor:pointer;transition:all .15s;border:1px solid;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--text-dim);color:var(--text);}
+.btn-run{background:transparent;border-color:var(--blue);color:var(--blue);}
+.btn-run:hover{background:rgba(96,165,250,0.1);}
+.btn-run:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-submit{background:var(--amber);border-color:var(--amber);color:#000;font-weight:bold;}
+.btn-submit:hover{background:#d4891a;}
+
+.cm-host{flex:1;overflow:hidden;position:relative;}
+.CodeMirror{height:100% !important;font-family:var(--mono) !important;font-size:13px !important;line-height:1.7 !important;background:#080a0b !important;}
+.CodeMirror-cursor{border-left-color:var(--amber) !important;}
+.CodeMirror-selected{background:rgba(245,166,35,0.18) !important;}
+
+.out-panel{border-top:1px solid var(--border);background:#060809;min-height:120px;max-height:190px;overflow-y:auto;flex-shrink:0;}
+.out-bar{display:flex;align-items:center;gap:7px;padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.out-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);}
+.out-dot.running{background:var(--amber);animation:blink .6s infinite;}
+.out-dot.pass{background:var(--green);}
+.out-dot.fail{background:var(--red);}
+.out-lbl{font-size:9px;color:var(--text-dim);letter-spacing:1px;}
+#out-lines{padding:8px 12px;font-size:12px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.op{color:var(--green);}
+.of{color:var(--red);}
+.oi{color:var(--text-dim);}
+.ow{color:var(--amber);}
+.os{color:var(--text);}
+.oe{color:var(--red);}
+
+/* AI panel */
+.ai-panel{width:290px;min-width:290px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);}
+.ai-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.ai-dot-live{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+.ai-title{font-size:11px;color:var(--text);}
+.ai-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.msg{font-size:11px;line-height:1.7;border-radius:6px;padding:9px 11px;}
+.msg-user{background:var(--amber-glow);border:1px solid rgba(245,166,35,0.2);color:var(--text);align-self:flex-end;max-width:90%;}
+.msg-ai{background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);max-width:100%;}
+.msg-ai code{background:rgba(0,0,0,0.45);padding:1px 4px;border-radius:3px;color:var(--amber);font-size:10px;}
+.msg-ai strong{color:var(--text);}
+.quick-btns{padding:0 8px 6px;display:flex;flex-direction:column;gap:3px;}
+.qbtn{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:9px;padding:4px 7px;border-radius:3px;cursor:pointer;text-align:left;transition:all .15s;}
+.qbtn:hover{border-color:var(--amber-dim);color:var(--amber);}
+.ai-inp-row{padding:8px;border-top:1px solid var(--border);display:flex;gap:5px;}
+.ai-inp{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 9px;border-radius:4px;outline:none;}
+.ai-inp:focus{border-color:var(--amber-dim);}
+.ai-inp::placeholder{color:var(--text-dim);}
+.btn-send{background:var(--amber);border:none;color:#000;font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:4px;cursor:pointer;}
+.btn-send:hover{background:#d4891a;}
+
+/* ══════════════════════════════════
+   VIEW 2 — BIBLIOTECA
+══════════════════════════════════ */
+#view-library{flex-direction:row;}
+
+.lib-sidebar{
+  width:240px;min-width:240px;border-right:1px solid var(--border);
+  background:var(--bg2);overflow-y:auto;
+}
+.lib-sidebar-hdr{padding:14px 16px 10px;font-size:9px;color:var(--text-dim);letter-spacing:2px;border-bottom:1px solid var(--border);}
+.lib-cat{border-bottom:1px solid var(--border);}
+.lib-cat-title{
+  padding:9px 14px;font-size:11px;color:var(--text);
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:background .15s;user-select:none;
+}
+.lib-cat-title:hover{background:var(--bg3);}
+.lib-cat-title .cat-icon{font-size:13px;}
+.lib-topic-list{display:none;}
+.lib-cat.open .lib-topic-list{display:block;}
+.lib-topic{
+  padding:6px 14px 6px 30px;font-size:11px;color:var(--text-dim);
+  cursor:pointer;transition:all .15s;border-left:2px solid transparent;
+}
+.lib-topic:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.lib-topic.active{color:var(--amber);border-left-color:var(--amber);background:var(--amber-glow);}
+
+.lib-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.lib-content{flex:1;overflow-y:auto;padding:28px 36px;}
+.lib-content h1{font-family:var(--sans);font-size:26px;font-weight:800;color:var(--amber);margin-bottom:8px;}
+.lib-content .subtitle{font-size:12px;color:var(--text-dim);margin-bottom:28px;line-height:1.8;}
+.lib-content h2{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--text);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.lib-content h3{font-size:12px;color:var(--amber);margin:18px 0 8px;letter-spacing:1px;text-transform:uppercase;}
+.lib-content p{font-size:12px;color:var(--text-dim);line-height:1.9;margin-bottom:12px;}
+.lib-content ul{padding-left:18px;margin-bottom:12px;}
+.lib-content li{font-size:12px;color:var(--text-dim);line-height:1.9;margin-bottom:4px;}
+.lib-content li strong{color:var(--text);}
+.lib-content strong{color:var(--text);}
+.code-block{background:#060809;border:1px solid var(--border);border-radius:6px;padding:16px;margin:12px 0;font-size:12px;line-height:1.8;color:var(--text);overflow-x:auto;border-left:3px solid var(--amber-dim);}
+.code-block .c-kw{color:#c792ea;}
+.code-block .c-fn{color:#82aaff;}
+.code-block .c-str{color:#c3e88d;}
+.code-block .c-num{color:#f78c6c;}
+.code-block .c-cm{color:#546e7a;font-style:italic;}
+.code-block .c-cls{color:var(--teal);}
+.tip-box{background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.2);border-radius:6px;padding:14px 16px;margin:14px 0;font-size:12px;color:var(--blue);line-height:1.8;}
+.tip-box::before{content:'💡 ';font-size:13px;}
+.warn-box{background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.2);border-radius:6px;padding:14px 16px;margin:14px 0;font-size:12px;color:var(--amber);line-height:1.8;}
+.warn-box::before{content:'⚠ ';}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.tag{font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);}
+
+.lib-ai{width:280px;min-width:280px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);}
+.lib-ai-hdr{padding:10px 14px;border-bottom:1px solid var(--border);}
+.lib-ai-title{font-size:11px;color:var(--text);display:flex;align-items:center;gap:7px;}
+.lib-ai-sub{font-size:10px;color:var(--text-dim);margin-top:3px;}
+.lib-ai-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.lib-qbtns{padding:0 8px 6px;display:flex;flex-direction:column;gap:3px;}
+.lib-ai-inp-row{padding:8px;border-top:1px solid var(--border);display:flex;gap:5px;}
+.lib-ai-inp{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 9px;border-radius:4px;outline:none;}
+.lib-ai-inp:focus{border-color:var(--amber-dim);}
+.lib-ai-inp::placeholder{color:var(--text-dim);}
+
+/* ══════════════════════════════════
+   VIEW 3 — RUTA LABORAL
+══════════════════════════════════ */
+#view-roadmap{flex-direction:column;overflow-y:auto;}
+.roadmap-wrap{padding:36px 48px;max-width:1100px;margin:0 auto;width:100%;}
+.roadmap-hero{text-align:center;margin-bottom:48px;}
+.roadmap-hero h1{font-family:var(--sans);font-size:36px;font-weight:800;color:var(--amber);margin-bottom:10px;}
+.roadmap-hero p{font-size:13px;color:var(--text-dim);line-height:1.9;max-width:600px;margin:0 auto;}
+
+.phase-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.phase-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:22px;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .2s;
+}
+.phase-card:hover{border-color:var(--amber-dim);transform:translateY(-2px);}
+.phase-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.phase-card.p1::before{background:var(--blue);}
+.phase-card.p2::before{background:var(--teal);}
+.phase-card.p3::before{background:var(--purple);}
+.phase-card.p4::before{background:var(--amber);}
+.phase-card.p5::before{background:var(--green);}
+.phase-card.p6::before{background:var(--red);}
+.phase-card.full{grid-column:1/-1;}
+.phase-num{font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:6px;}
+.phase-title{font-family:var(--sans);font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.phase-period{font-size:11px;color:var(--amber);margin-bottom:14px;}
+.phase-topics{display:flex;flex-direction:column;gap:7px;}
+.phase-topic{display:flex;align-items:flex-start;gap:9px;font-size:11px;color:var(--text-dim);line-height:1.7;}
+.phase-topic-dot{width:5px;height:5px;border-radius:50%;background:var(--text-dim);margin-top:6px;flex-shrink:0;}
+.phase-topic strong{color:var(--text);display:block;margin-bottom:2px;}
+.phase-check{
+  position:absolute;top:16px;right:16px;
+  width:24px;height:24px;border-radius:50%;
+  border:1px solid var(--border);background:transparent;
+  cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);transition:all .2s;
+}
+.phase-check:hover{border-color:var(--green);color:var(--green);}
+.phase-check.done{background:var(--green);border-color:var(--green);color:#000;}
+
+.resources-section{margin-top:36px;}
+.res-title{font-family:var(--sans);font-size:20px;font-weight:800;color:var(--text);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.res-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:16px;transition:border-color .2s;}
+.res-card:hover{border-color:var(--text-dim);}
+.res-card-type{font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-bottom:6px;}
+.res-card-name{font-size:13px;color:var(--text);font-family:var(--sans);font-weight:700;margin-bottom:6px;}
+.res-card-desc{font-size:11px;color:var(--text-dim);line-height:1.7;}
+.res-card-link{display:inline-block;margin-top:10px;font-size:10px;color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber-dim);}
+.res-card-link:hover{color:#fff;}
+.res-tag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid var(--amber-dim);margin-top:8px;}
+
+.projects-section{margin-top:36px;margin-bottom:48px;}
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
+.proj-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:18px;border-top:3px solid var(--purple);}
+.proj-num{font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:6px;}
+.proj-name{font-size:14px;color:var(--text);font-family:var(--sans);font-weight:700;margin-bottom:8px;}
+.proj-desc{font-size:11px;color:var(--text-dim);line-height:1.7;margin-bottom:10px;}
+.proj-tech{display:flex;flex-wrap:wrap;gap:4px;}
+.proj-tech span{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--text-dim);border:1px solid var(--border);}
+
+/* ══ GLOBAL OVERLAYS ══ */
+#life-flash{position:fixed;inset:0;z-index:1000;pointer-events:none;background:rgba(248,113,113,0.1);opacity:0;transition:opacity .3s;}
+#life-flash.show{opacity:1;}
+#gameover{position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;}
+#gameover.show{display:flex;}
+.go-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:44px;text-align:center;max-width:360px;}
+.go-title{font-family:var(--sans);font-size:30px;font-weight:800;color:var(--red);margin-bottom:10px;}
+.go-pts{font-size:32px;color:var(--amber);font-family:var(--sans);font-weight:800;margin:14px 0 4px;}
+
+#pyodide-bar{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--border);border-radius:5px;
+  padding:8px 18px;font-size:11px;color:var(--text-dim);z-index:500;
+  display:flex;align-items:center;gap:9px;transition:opacity .6s;
+}
+#pyodide-bar.hidden{opacity:0;pointer-events:none;}
+.py-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:blink .6s infinite;}
+
+/* ══ INTRO ══ */
+#intro{
+  position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+}
+.intro-logo{font-size:56px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.intro-h1{font-family:var(--sans);font-size:46px;font-weight:800;color:var(--amber);letter-spacing:-2px;}
+.intro-v{font-size:10px;color:var(--text-dim);letter-spacing:3px;margin-top:-12px;}
+.intro-sub{font-size:13px;color:var(--text-dim);text-align:center;line-height:1.9;max-width:500px;}
+.intro-sub span{color:var(--text);}
+.intro-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:560px;width:100%;}
+.icard{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center;}
+.icard-icon{font-size:22px;margin-bottom:5px;}
+.icard-val{font-size:14px;color:var(--text);font-family:var(--sans);font-weight:700;}
+.icard-lbl{font-size:10px;color:var(--text-dim);}
+.btn-start{font-family:var(--sans);font-size:15px;font-weight:700;background:var(--amber);color:#000;border:none;padding:13px 38px;border-radius:4px;cursor:pointer;transition:all .2s;margin-top:6px;}
+.btn-start:hover{background:#fff;transform:scale(1.03);}
+
+/* ══ ANIMATIONS ══ */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadeIn .22s ease forwards;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.shake{animation:shake .35s ease;}
+.confetti-p{position:fixed;width:7px;height:7px;opacity:0;pointer-events:none;z-index:400;animation:cf 1.4s ease-in forwards;}
+@keyframes cf{0%{opacity:1;transform:translateY(-20px) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+
+.pbar-wrap{height:2px;background:var(--border);}
+.pbar{height:2px;background:var(--amber);transition:width .4s;}
+
+@media(max-width:800px){
+  .sidebar,.ai-panel,.lib-sidebar,.lib-ai{display:none;}
+  #view-challenges,#view-library{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-logo">🐍</div>
+  <div class="intro-h1">PythonQuest</div>
+  <div class="intro-v">v3.0 · MULTIVISTA</div>
+  <p class="intro-sub">Aprendé Python <span>de verdad</span> — desafíos interactivos, biblioteca completa y una ruta de aprendizaje <span>orientada al trabajo real</span>.</p>
+  <div class="intro-cards">
+    <div class="icard"><div class="icard-icon">⚔️</div><div class="icard-val">Desafíos</div><div class="icard-lbl">Python real</div></div>
+    <div class="icard"><div class="icard-icon">📚</div><div class="icard-val">Biblioteca</div><div class="icard-lbl">Teoría completa</div></div>
+    <div class="icard"><div class="icard-icon">🗺️</div><div class="icard-val">Roadmap</div><div class="icard-lbl">2 años a trabajo</div></div>
+    <div class="icard"><div class="icard-icon">🤖</div><div class="icard-val">PyBot IA</div><div class="icard-lbl">Tutor siempre</div></div>
+  </div>
+  <button class="btn-start" onclick="startApp()">Empezar →</button>
+</div>
+
+<!-- PYODIDE BAR -->
+<div id="pyodide-bar"><div class="py-dot"></div><span id="py-txt">Cargando Python real...</span></div>
+
+<!-- LIFE FLASH -->
+<div id="life-flash"></div>
+
+<!-- GAME OVER -->
+<div id="gameover">
+  <div class="go-box">
+    <div style="font-size:52px;margin-bottom:12px">💀</div>
+    <div class="go-title">Sin vidas</div>
+    <p style="font-size:12px;color:var(--text-dim);line-height:1.8;margin-bottom:10px">El error es parte del proceso. Tu progreso se guarda.</p>
+    <div class="go-pts" id="go-pts">0 pts</div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:20px">puntos acumulados</div>
+    <button class="btn btn-submit" style="width:100%;padding:11px;font-size:13px" onclick="resetLives()">Revivir (3 vidas) →</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="app-header" style="display:none">
+  <div class="logo-area">
+    <span class="logo-snake">🐍</span>
+    <span class="logo-text">Python<em>Quest</em></span>
+  </div>
+  <nav class="main-nav">
+    <button class="nav-tab active" onclick="showView('challenges')" id="tab-challenges">
+      <span class="nav-tab-icon">⚔️</span><span class="nav-tab-label">Desafíos</span>
+    </button>
+    <button class="nav-tab" onclick="showView('library')" id="tab-library">
+      <span class="nav-tab-icon">📚</span><span class="nav-tab-label">Biblioteca</span>
+    </button>
+    <button class="nav-tab" onclick="showView('roadmap')" id="tab-roadmap">
+      <span class="nav-tab-icon">🗺️</span><span class="nav-tab-label">Ruta Laboral</span>
+    </button>
+  </nav>
+  <div class="header-right">
+    <div class="hud-item" id="streak-hud">🔥 <span id="streak-val">0d</span></div>
+    <div class="lives-row">
+      <span class="lh" id="h1">❤️</span><span class="lh" id="h2">❤️</span><span class="lh" id="h3">❤️</span>
+    </div>
+    <div class="hud-item amber" id="pts-hud">0 pts</div>
+  </div>
+</div>
+
+<!-- VIEW: DESAFÍOS -->
+<div class="view active" id="view-challenges">
+  <aside class="sidebar">
+    <div class="sidebar-header">CURRICULUM</div>
+    <div class="pbar-wrap"><div class="pbar" id="global-pbar" style="width:0%"></div></div>
+    <div id="module-list"></div>
+  </aside>
+  <main class="challenge-main">
+    <div class="ch-header">
+      <div class="ch-kyu" id="ch-kyu">—</div>
+      <div class="ch-title" id="ch-title">Cargando...</div>
+      <div class="ch-desc" id="ch-desc"></div>
+      <div class="ch-examples" id="ch-examples" style="display:none"></div>
+    </div>
+    <div class="editor-wrap">
+      <div class="editor-bar">
+        <span class="ed-file" id="ed-file">solution.py</span>
+        <span class="ed-badge" id="py-badge">⬤ Python real</span>
+        <div class="ed-actions">
+          <button class="btn btn-ghost" onclick="resetCode()">↺ Reset</button>
+          <button class="btn btn-ghost" onclick="askHintChallenge()">💡 Pista</button>
+          <button class="btn btn-run" id="btn-run" onclick="runCode()" title="Ctrl+Enter">▶ Ejecutar</button>
+          <button class="btn btn-submit" onclick="submitSolution()">✓ Enviar</button>
+        </div>
+      </div>
+      <div class="cm-host" id="cm-host"></div>
+      <div class="out-panel">
+        <div class="out-bar">
+          <div class="out-dot" id="out-dot"></div>
+          <span class="out-lbl">OUTPUT</span>
+          <span class="out-lbl" id="out-status" style="margin-left:auto"></span>
+          <span class="out-lbl" id="exec-t" style="margin-left:8px"></span>
+        </div>
+        <div id="out-lines"><span class="oi"># Presioná ▶ Ejecutar · Ctrl+Enter</span></div>
+      </div>
+    </div>
+  </main>
+  <aside class="ai-panel">
+    <div class="ai-hdr">
+      <div class="ai-dot-live"></div>
+      <span class="ai-title">PyBot — Tutor IA</span>
+    </div>
+    <div class="ai-msgs" id="ai-msgs-ch">
+      <div class="msg msg-ai fadein">¡Hola! Soy <strong>PyBot</strong> 🐍<br><br>Puedo explicarte conceptos, revisar tu código y darte pistas. ¿Arrancamos?</div>
+    </div>
+    <div class="quick-btns">
+      <button class="qbtn" onclick="chQuick('¿Podés explicarme el desafío actual?')">¿Me explicás el desafío?</button>
+      <button class="qbtn" onclick="chQuick('¿Qué está mal en mi código?')">Revisá mi código</button>
+      <button class="qbtn" onclick="chQuick('Dame un ejercicio extra sobre este tema')">Ejercicio extra</button>
+      <button class="qbtn" onclick="chQuick('¿Cómo funciona Pyodide?')">¿Qué es Pyodide?</button>
+    </div>
+    <div class="ai-inp-row">
+      <input class="ai-inp" id="ch-ai-inp" placeholder="Preguntale a PyBot..." onkeydown="if(event.key==='Enter')sendChMsg()">
+      <button class="btn-send" onclick="sendChMsg()">→</button>
+    </div>
+  </aside>
+</div>
+
+<!-- VIEW: BIBLIOTECA -->
+<div class="view" id="view-library">
+  <aside class="lib-sidebar">
+    <div class="lib-sidebar-hdr">BIBLIOTECA</div>
+    <div id="lib-nav"></div>
+  </aside>
+  <main class="lib-main">
+    <div class="lib-content" id="lib-content">
+      <!-- content injected by JS -->
+    </div>
+  </main>
+  <aside class="lib-ai">
+    <div class="lib-ai-hdr">
+      <div class="lib-ai-title"><div class="ai-dot-live"></div> PyBot — Consultas</div>
+      <div class="lib-ai-sub">Preguntale sobre cualquier concepto de Python</div>
+    </div>
+    <div class="lib-ai-msgs ai-msgs" id="ai-msgs-lib">
+      <div class="msg msg-ai fadein">¡Hola! Estoy acá para explicarte cualquier concepto de la biblioteca. ¿Qué querés entender mejor?</div>
+    </div>
+    <div class="lib-qbtns">
+      <button class="qbtn" onclick="libQuick('¿Cuándo usar una lista y cuándo un diccionario?')">Listas vs Diccionarios</button>
+      <button class="qbtn" onclick="libQuick('Explicame la diferencia entre = y == en Python')">= vs ==</button>
+      <button class="qbtn" onclick="libQuick('¿Qué es la programación orientada a objetos?')">¿Qué es POO?</button>
+      <button class="qbtn" onclick="libQuick('Dame un ejemplo de uso real de funciones lambda')">Lambda en la vida real</button>
+    </div>
+    <div class="lib-ai-inp-row">
+      <input class="lib-ai-inp" id="lib-ai-inp" placeholder="Preguntá cualquier cosa..." onkeydown="if(event.key==='Enter')sendLibMsg()">
+      <button class="btn-send" onclick="sendLibMsg()">→</button>
+    </div>
+  </aside>
+</div>
+
+<!-- VIEW: ROADMAP -->
+<div class="view" id="view-roadmap">
+  <div class="roadmap-wrap" id="roadmap-content">
+    <!-- injected by JS -->
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CURRICULUM
+// ══════════════════════════════════════════
+const CURRICULUM = [
+  { id:'basics', icon:'📟', title:'Lo básico',
+    lessons:[
+      { id:'print', title:'print() — primer línea', kyu:'Nv1', pts:10, topic:'print',
+        task:'Imprimí exactamente: <strong>¡Hola, Python!</strong>',
+        examples:[{input:'print("Hola")',output:'Hola'}],
+        starter:'# Tu primer programa\nprint(...)',
+        tests:[{desc:'Imprime ¡Hola, Python!',fn:(o)=>o.includes('Hola, Python')||o.includes('¡Hola, Python!')}]
+      },
+      { id:'variables', title:'Variables — guardar datos', kyu:'Nv1', pts:15, topic:'variables',
+        task:'Creá <strong>nombre</strong> (string) y <strong>edad</strong> (número). Imprimí ambas.',
+        examples:[{input:'x = 5\nprint(x)',output:'5'}],
+        starter:'nombre = ...\nedad = ...\nprint(nombre)\nprint(edad)',
+        tests:[
+          {desc:'nombre es string',fn:(o,c)=>/nombre\s*=\s*["']/.test(c)},
+          {desc:'edad es número',fn:(o,c)=>/edad\s*=\s*\d/.test(c)}
+        ]
+      },
+      { id:'fstring', title:'f-strings — texto dinámico', kyu:'Nv1', pts:20, topic:'f-strings',
+        task:'Usá f-string para imprimir: <strong>Me llamo [nombre] y tengo [edad] años.</strong>',
+        examples:[{input:'x="Ana"\nprint(f"Hola {x}")',output:'Hola Ana'}],
+        starter:'nombre = "Tu nombre"\nedad = 20\nprint(f"...")',
+        tests:[{desc:'Usa f-string',fn:(o,c)=>c.includes('f"')||c.includes("f'")}]
+      },
+      { id:'types', title:'Tipos — int, float, str, bool', kyu:'Nv1', pts:20, topic:'tipos',
+        task:'Creá una variable de cada tipo: <strong>entero, decimal, texto, booleano</strong>. Imprimí cada una con <code>type()</code>.',
+        examples:[{input:'x=42\nprint(type(x))',output:"<class 'int'>"}],
+        starter:'entero = 10\ndecimal = 3.14\ntexto = "Python"\nbooleano = True\n\nprint(type(entero))\nprint(type(decimal))\nprint(type(texto))\nprint(type(booleano))',
+        tests:[{desc:'Usa type()',fn:(o,c)=>c.includes('type(')}]
+      }
+    ]
+  },
+  { id:'logic', icon:'🔀', title:'Lógica',
+    lessons:[
+      { id:'if', title:'if / else — decisiones', kyu:'Nv2', pts:25, topic:'condicionales',
+        task:'Creá <strong>temperatura = 35</strong>. Si > 30 imprimí "Hace calor", si no "Está fresco".',
+        examples:[{input:'if 5>3:\n    print("sí")',output:'sí'}],
+        starter:'temperatura = 35\n\nif temperatura > 30:\n    print("Hace calor")\nelse:\n    print("Está fresco")',
+        tests:[{desc:'Usa if/else',fn:(o,c)=>c.includes('if')&&c.includes('else')}]
+      },
+      { id:'elif', title:'elif — múltiples caminos', kyu:'Nv2', pts:30, topic:'elif',
+        task:'Nota < 4 → "Reprobado", 4-6 → "Regular", > 6 → "Excelente". Usá <code>if/elif/else</code>.',
+        examples:[{input:'x=5\nif x<4:\n    print("bajo")\nelif x<7:\n    print("medio")\nelse:\n    print("alto")',output:'medio'}],
+        starter:'nota = 5\n\nif nota < 4:\n    print("Reprobado")\nelif nota <= 6:\n    print("Regular")\nelse:\n    print("Excelente")',
+        tests:[{desc:'Usa elif',fn:(o,c)=>c.includes('elif')}]
+      }
+    ]
+  },
+  { id:'loops', icon:'🔁', title:'Loops',
+    lessons:[
+      { id:'for', title:'for — repetir con range', kyu:'Nv2', pts:30, topic:'for',
+        task:'Imprimí los números del 1 al 10 con un <code>for</code>.',
+        examples:[{input:'for i in range(3):\n    print(i)',output:'0\n1\n2'}],
+        starter:'for i in range(1, 11):\n    print(i)',
+        tests:[{desc:'Imprime 1 al 10',fn:(o)=>o.includes('1')&&o.includes('10')}]
+      },
+      { id:'while', title:'while — condición', kyu:'Nv2', pts:30, topic:'while',
+        task:'Usá <code>while</code> para contar del 1 al 5.',
+        examples:[{input:'x=0\nwhile x<3:\n    print(x)\n    x+=1',output:'0\n1\n2'}],
+        starter:'contador = 1\nwhile contador <= 5:\n    print(contador)\n    contador += 1',
+        tests:[{desc:'Usa while',fn:(o,c)=>c.includes('while')},{desc:'Imprime 1 al 5',fn:(o)=>o.includes('5')}]
+      },
+      { id:'for-list', title:'for sobre listas', kyu:'Nv2', pts:35, topic:'for',
+        task:'Iterá la lista de frutas e imprimí cada una en mayúsculas.',
+        examples:[{input:'for x in ["a","b"]:\n    print(x.upper())',output:'A\nB'}],
+        starter:'frutas = ["manzana","banana","uva","mango"]\n\nfor fruta in frutas:\n    print(fruta.upper())',
+        tests:[{desc:'Imprime en mayúsculas',fn:(o)=>o.includes('MANZANA')||o.includes('BANANA')}]
+      }
+    ]
+  },
+  { id:'structures', icon:'📦', title:'Estructuras',
+    lessons:[
+      { id:'lists', title:'Listas', kyu:'Nv3', pts:35, topic:'listas',
+        task:'Creá lista <strong>frutas</strong> con 3+ frutas. Imprimí primera, última y cantidad (<code>len</code>).',
+        examples:[{input:'n=[10,20,30]\nprint(n[0],n[-1],len(n))',output:'10 30 3'}],
+        starter:'frutas = ["manzana","banana","uva"]\nprint(frutas[0])\nprint(frutas[-1])\nprint(len(frutas))',
+        tests:[{desc:'Usa len()',fn:(o,c)=>c.includes('len(')}]
+      },
+      { id:'dicts', title:'Diccionarios', kyu:'Nv3', pts:40, topic:'diccionarios',
+        task:'Creá diccionario <strong>persona</strong> con nombre, edad, ciudad. Imprimí nombre y ciudad.',
+        examples:[{input:'d={"a":1}\nprint(d["a"])',output:'1'}],
+        starter:'persona = {\n    "nombre": "María",\n    "edad": 28,\n    "ciudad": "Buenos Aires"\n}\nprint(persona["nombre"])\nprint(persona["ciudad"])',
+        tests:[{desc:'Crea diccionario',fn:(o,c)=>c.includes('{')&&c.includes(':')},{desc:'Accede a claves',fn:(o,c)=>c.includes('["')||c.includes("['")}]
+      },
+      { id:'tuples-sets', title:'Tuplas y Sets', kyu:'Nv3', pts:40, topic:'tuplas y sets',
+        task:'Creá una tupla <strong>coordenadas</strong> con (lat, lng). Creá un set <strong>colores</strong> con valores repetidos y mostrá que el set elimina duplicados.',
+        examples:[{input:'t=(1,2)\ns={1,1,2,3}\nprint(t)\nprint(s)',output:'(1, 2)\n{1, 2, 3}'}],
+        starter:'coordenadas = (-34.6, -58.4)\nprint(coordenadas)\nprint(type(coordenadas))\n\ncolores = {"rojo","azul","rojo","verde","azul"}\nprint(colores)\nprint(f"Sin duplicados: {len(colores)} colores")',
+        tests:[{desc:'Crea una tupla',fn:(o,c)=>c.includes('(')&&c.includes(',')},{desc:'Crea un set con {}',fn:(o,c)=>/=\s*{/.test(c)}]
+      }
+    ]
+  },
+  { id:'functions', icon:'⚙️', title:'Funciones',
+    lessons:[
+      { id:'def', title:'def — crear funciones', kyu:'Nv3', pts:40, topic:'funciones',
+        task:'Creá <strong>saludar(nombre)</strong> que imprima "Hola, [nombre]!". Llamala 3 veces.',
+        examples:[{input:'def doble(n):\n    return n*2\nprint(doble(5))',output:'10'}],
+        starter:'def saludar(nombre):\n    print(f"Hola, {nombre}!")\n\nsaludar("Ana")\nsaludar("Luis")\nsaludar("Python")',
+        tests:[{desc:'Define función',fn:(o,c)=>c.includes('def ')},{desc:'Llama 3 veces',fn:(o)=>o.split('Hola').length-1>=3}]
+      },
+      { id:'return', title:'return — devolver valores', kyu:'Nv3', pts:45, topic:'return',
+        task:'Creá <strong>area_rectangulo(base, altura)</strong> que retorne el área. Llamala con 3 rectangulos.',
+        examples:[{input:'def sq(x):\n    return x*x\nprint(sq(4))',output:'16'}],
+        starter:'def area_rectangulo(base, altura):\n    return base * altura\n\nprint(area_rectangulo(5, 3))\nprint(area_rectangulo(10, 2))\nprint(area_rectangulo(7, 7))',
+        tests:[{desc:'Usa return',fn:(o,c)=>c.includes('return')},{desc:'5×3=15 correcto',fn:(o)=>o.includes('15')}]
+      },
+      { id:'lambda', title:'lambda — una línea', kyu:'Nv4', pts:50, topic:'lambda',
+        task:'Creá lambda <strong>cuadrado</strong> y usala con <code>map()</code> sobre [1,2,3,4,5].',
+        examples:[{input:'doble = lambda x: x*2\nprint(doble(4))',output:'8'}],
+        starter:'cuadrado = lambda x: x ** 2\n\nnumeros = [1, 2, 3, 4, 5]\nresultados = list(map(cuadrado, numeros))\nprint(resultados)',
+        tests:[{desc:'Usa lambda',fn:(o,c)=>c.includes('lambda')},{desc:'Resultado [1,4,9,16,25]',fn:(o)=>o.includes('[1, 4, 9, 16, 25]')}]
+      }
+    ]
+  },
+  { id:'oop', icon:'🏗️', title:'POO',
+    lessons:[
+      { id:'class', title:'class — tus tipos', kyu:'Nv4', pts:55, topic:'clases',
+        task:'Creá clase <strong>Perro</strong> con nombre y raza, método <strong>ladrar()</strong>. Instanciá 2 perros.',
+        examples:[{input:'class G:\n    def m(self):\n        print("Miau")\nG().m()',output:'Miau'}],
+        starter:'class Perro:\n    def __init__(self, nombre, raza):\n        self.nombre = nombre\n        self.raza = raza\n    def ladrar(self):\n        print(f"¡Guau! Soy {self.nombre}")\n\np1 = Perro("Rex","Labrador")\np2 = Perro("Luna","Caniche")\np1.ladrar()\np2.ladrar()',
+        tests:[{desc:'Define clase',fn:(o,c)=>c.includes('class ')},{desc:'2 ladridos',fn:(o)=>o.split('Guau').length-1>=2}]
+      },
+      { id:'inheritance', title:'Herencia', kyu:'Nv4', pts:65, topic:'herencia',
+        task:'Clase <strong>Animal</strong> con <code>hablar()</code>. <strong>Gato</strong> y <strong>Perro</strong> heredan y sobreescriben el método.',
+        examples:[{input:'class A:\n    def m(self):\n        pass\nclass B(A):\n    def m(self):\n        print("B")\nB().m()',output:'B'}],
+        starter:'class Animal:\n    def hablar(self):\n        print("...")\n\nclass Gato(Animal):\n    def hablar(self):\n        print("Miau!")\n\nclass Perro(Animal):\n    def hablar(self):\n        print("¡Guau!")\n\nanimales = [Gato(), Perro(), Gato()]\nfor a in animales:\n    a.hablar()',
+        tests:[{desc:'Usa herencia',fn:(o,c)=>/class\s+\w+\(\w+\)/.test(c)}]
+      }
+    ]
+  },
+  { id:'errors', icon:'🛡️', title:'Errores',
+    lessons:[
+      { id:'try-except', title:'try / except', kyu:'Nv4', pts:55, topic:'excepciones',
+        task:'Manejá <code>ZeroDivisionError</code> con try/except en una función <strong>dividir(a,b)</strong>.',
+        examples:[{input:'try:\n    x=1/0\nexcept:\n    print("error")',output:'error'}],
+        starter:'def dividir(a, b):\n    try:\n        resultado = a / b\n        print(f"{a} / {b} = {resultado}")\n    except ZeroDivisionError:\n        print("¡No se puede dividir por cero!")\n\ndividir(10, 2)\ndividir(5, 0)\ndividir(9, 3)',
+        tests:[{desc:'Usa try/except',fn:(o,c)=>c.includes('try:')&&c.includes('except')},{desc:'Captura error',fn:(o)=>o.toLowerCase().includes('cero')||o.includes('Error')}]
+      }
+    ]
+  },
+  { id:'files', icon:'📁', title:'Archivos',
+    lessons:[
+      { id:'readwrite', title:'Leer y escribir', kyu:'Nv4', pts:60, topic:'archivos',
+        task:'Creá <strong>notas.txt</strong>, escribí 3 líneas, leelo e imprimí el contenido.',
+        examples:[{input:'with open("f","w") as f:\n    f.write("x")',output:''}],
+        starter:'with open("notas.txt", "w") as f:\n    f.write("Línea 1: Python es poderoso\\n")\n    f.write("Línea 2: Sigo aprendiendo\\n")\n    f.write("Línea 3: Voy bien!\\n")\n\nwith open("notas.txt", "r") as f:\n    contenido = f.read()\n    print(contenido)',
+        tests:[{desc:'Usa open escritura',fn:(o,c)=>c.includes('"w"')},{desc:'Usa open lectura',fn:(o,c)=>c.includes('"r"')}]
+      }
+    ]
+  },
+  { id:'ai-module', icon:'🤖', title:'Tu primera IA',
+    lessons:[
+      { id:'sklearn', title:'ML con scikit-learn', kyu:'Nv5', pts:80, topic:'machine learning',
+        task:'Entrenás un <code>DecisionTreeClassifier</code> para clasificar manzanas/naranjas por peso y color.',
+        examples:[{input:'# sklearn en el browser vía Pyodide',output:''}],
+        starter:'from sklearn.tree import DecisionTreeClassifier\n\nX = [[182,0],[167,0],[176,0],[140,1],[154,1],[148,1]]\ny = ["manzana","manzana","manzana","naranja","naranja","naranja"]\n\nmodelo = DecisionTreeClassifier()\nmodelo.fit(X, y)\n\nfrutas = [[160,0],[145,1],[170,0]]\nfor f in frutas:\n    pred = modelo.predict([f])\n    print(f"Peso {f[0]}g, color {f[1]} → {pred[0]}")',
+        tests:[{desc:'Usa fit()',fn:(o,c)=>c.includes('.fit(')},{desc:'Usa predict()',fn:(o,c)=>c.includes('.predict(')}]
+      },
+      { id:'llm-api', title:'IA que responde preguntas', kyu:'Nv5', pts:100, topic:'APIs y LLMs',
+        task:'Creá <strong>preguntar_ia(pregunta)</strong> que arme el payload correcto para un LLM (mensajes con role/content).',
+        examples:[{input:'# Estructura de llamada a LLM',output:''}],
+        starter:'import json\n\ndef preguntar_ia(pregunta):\n    payload = {\n        "model": "claude-sonnet-4-20250514",\n        "messages": [\n            {"role":"system","content":"Sos un asistente en español."},\n            {"role":"user","content": pregunta}\n        ]\n    }\n    print(json.dumps(payload, indent=2, ensure_ascii=False))\n    return payload\n\nresultado = preguntar_ia("¿Qué es Python?")\nprint(f"\\nMensajes: {len(resultado[\'messages\'])}")',
+        tests:[{desc:'Crea preguntar_ia',fn:(o,c)=>c.includes('def preguntar_ia')},{desc:'Usa json.dumps',fn:(o,c)=>c.includes('json.dumps')}]
+      }
+    ]
+  }
+];
+
+// ══════════════════════════════════════════
+//  BIBLIOTECA — contenido
+// ══════════════════════════════════════════
+const LIBRARY = [
+  { id:'intro-python', cat:'🐍 Python', catId:'python-basics', title:'¿Qué es Python?',
+    html:`
+<h1>¿Qué es Python?</h1>
+<p class="subtitle">El lenguaje más popular del mundo para comenzar — y también para trabajar en empresas de primer nivel.</p>
+<h2>Historia y contexto</h2>
+<p>Python fue creado por <strong>Guido van Rossum</strong> en 1991. Su nombre no viene de la serpiente sino del grupo de humor británico <em>Monty Python</em>. Hoy es el lenguaje más popular del mundo según índices como TIOBE y Stack Overflow.</p>
+<p>Lo usa <strong>Google, NASA, Netflix, Instagram, Spotify y OpenAI</strong>. No es casualidad: Python combina legibilidad con poder real.</p>
+<h2>¿Por qué aprender Python?</h2>
+<ul>
+  <li><strong>Sintaxis clara:</strong> Se lee casi como pseudocódigo en inglés.</li>
+  <li><strong>Versatilidad:</strong> Web, IA, datos, automatización, scripting.</li>
+  <li><strong>Ecosistema:</strong> Cientos de miles de librerías disponibles.</li>
+  <li><strong>Demanda laboral:</strong> Uno de los lenguajes mejor pagos del mercado.</li>
+</ul>
+<div class="tip-box">Python usa indentación (espacios) en lugar de llaves {} para definir bloques de código. Esto lo hace más legible pero requiere consistencia.</div>
+<h2>Tu primer programa</h2>
+<div class="code-block"><span class="c-cm"># Esto es un comentario</span>
+<span class="c-fn">print</span>(<span class="c-str">"¡Hola, mundo!"</span>)  <span class="c-cm"># Imprime en pantalla</span>
+
+<span class="c-cm"># Python es dinámicamente tipado</span>
+x = <span class="c-num">42</span>          <span class="c-cm"># int</span>
+pi = <span class="c-num">3.14</span>        <span class="c-cm"># float</span>
+nombre = <span class="c-str">"Ana"</span>    <span class="c-cm"># str</span>
+activo = <span class="c-kw">True</span>     <span class="c-cm"># bool</span></div>
+<h2>El Zen de Python</h2>
+<p>Python tiene una filosofía de diseño. Podés verla escribiendo <code>import this</code>. Algunos principios clave:</p>
+<ul>
+  <li><strong>Bello es mejor que feo.</strong></li>
+  <li><strong>Explícito es mejor que implícito.</strong></li>
+  <li><strong>Simple es mejor que complejo.</strong></li>
+  <li><strong>La legibilidad importa.</strong></li>
+</ul>
+`
+  },
+  { id:'variables-tipos', cat:'🐍 Python', catId:'python-basics', title:'Variables y Tipos',
+    html:`
+<h1>Variables y Tipos de Datos</h1>
+<p class="subtitle">El fundamento de todo programa — cómo guardar y manipular información.</p>
+<h2>Variables</h2>
+<p>Una variable es un nombre que apunta a un valor en memoria. En Python no necesitás declarar el tipo: Python lo infiere solo.</p>
+<div class="code-block">nombre = <span class="c-str">"Lucía"</span>
+edad = <span class="c-num">25</span>
+altura = <span class="c-num">1.68</span>
+activa = <span class="c-kw">True</span>
+
+<span class="c-cm"># Múltiple asignación</span>
+x, y, z = <span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>
+a = b = c = <span class="c-num">0</span></div>
+<h2>Tipos principales</h2>
+<h3>int y float</h3>
+<div class="code-block">entero = <span class="c-num">42</span>
+decimal = <span class="c-num">3.14159</span>
+negativo = <span class="c-num">-7</span>
+grande = <span class="c-num">1_000_000</span>  <span class="c-cm"># el _ mejora legibilidad</span>
+
+<span class="c-cm"># Operaciones</span>
+suma = <span class="c-num">10</span> + <span class="c-num">3</span>        <span class="c-cm"># 13</span>
+resta = <span class="c-num">10</span> - <span class="c-num">3</span>       <span class="c-cm"># 7</span>
+mult = <span class="c-num">10</span> * <span class="c-num">3</span>        <span class="c-cm"># 30</span>
+div = <span class="c-num">10</span> / <span class="c-num">3</span>         <span class="c-cm"># 3.333...</span>
+div_entera = <span class="c-num">10</span> // <span class="c-num">3</span>  <span class="c-cm"># 3</span>
+modulo = <span class="c-num">10</span> % <span class="c-num">3</span>      <span class="c-cm"># 1</span>
+potencia = <span class="c-num">2</span> ** <span class="c-num">8</span>    <span class="c-cm"># 256</span></div>
+<h3>str (strings)</h3>
+<div class="code-block">texto1 = <span class="c-str">"doble comilla"</span>
+texto2 = <span class="c-str">'simple comilla'</span>
+multilinea = <span class="c-str">"""
+línea 1
+línea 2
+"""</span>
+
+nombre = <span class="c-str">"Python"</span>
+version = <span class="c-num">3</span>
+<span class="c-cm"># f-strings (recomendado)</span>
+msg = <span class="c-fn">f</span><span class="c-str">"Usando {nombre} versión {version}"</span>
+
+<span class="c-cm"># Métodos comunes</span>
+<span class="c-str">"hola"</span>.upper()       <span class="c-cm"># "HOLA"</span>
+<span class="c-str">"  hola  "</span>.strip()   <span class="c-cm"># "hola"</span>
+<span class="c-str">"a,b,c"</span>.split(<span class="c-str">","</span>)   <span class="c-cm"># ["a","b","c"]</span>
+<span class="c-str">"hola mundo"</span>.replace(<span class="c-str">"mundo"</span>, <span class="c-str">"Python"</span>)</div>
+<h3>bool</h3>
+<div class="code-block">verdadero = <span class="c-kw">True</span>
+falso = <span class="c-kw">False</span>
+
+<span class="c-cm"># Operadores lógicos</span>
+<span class="c-kw">True</span> <span class="c-kw">and</span> <span class="c-kw">False</span>   <span class="c-cm"># False</span>
+<span class="c-kw">True</span> <span class="c-kw">or</span> <span class="c-kw">False</span>    <span class="c-cm"># True</span>
+<span class="c-kw">not</span> <span class="c-kw">True</span>         <span class="c-cm"># False</span></div>
+<div class="warn-box">En Python, <code>None</code> es el equivalente a "nulo" o "vacío". Se usa para representar la ausencia de valor.</div>
+`
+  },
+  { id:'estructuras-datos', cat:'📦 Estructuras', catId:'structures', title:'Listas, Dicts, Tuplas y Sets',
+    html:`
+<h1>Estructuras de Datos</h1>
+<p class="subtitle">Las cuatro estructuras fundamentales de Python — y cuándo usar cada una.</p>
+<h2>Listas []</h2>
+<p>Colección <strong>ordenada y mutable</strong>. La más usada en el día a día.</p>
+<div class="code-block">frutas = [<span class="c-str">"manzana"</span>, <span class="c-str">"banana"</span>, <span class="c-str">"uva"</span>]
+
+<span class="c-cm"># Acceso por índice (empieza en 0)</span>
+frutas[<span class="c-num">0</span>]    <span class="c-cm"># "manzana"</span>
+frutas[-<span class="c-num">1</span>]   <span class="c-cm"># "uva" (último)</span>
+frutas[<span class="c-num">1</span>:<span class="c-num">3</span>]  <span class="c-cm"># ["banana","uva"] (slicing)</span>
+
+<span class="c-cm"># Métodos clave</span>
+frutas.append(<span class="c-str">"mango"</span>)      <span class="c-cm"># agrega al final</span>
+frutas.insert(<span class="c-num">1</span>, <span class="c-str">"pera"</span>)    <span class="c-cm"># inserta en posición</span>
+frutas.remove(<span class="c-str">"banana"</span>)     <span class="c-cm"># elimina valor</span>
+frutas.pop()                  <span class="c-cm"># elimina y retorna último</span>
+frutas.sort()                 <span class="c-cm"># ordena in-place</span>
+sorted(frutas)                <span class="c-cm"># retorna nueva lista ordenada</span>
+<span class="c-fn">len</span>(frutas)                   <span class="c-cm"># cantidad de elementos</span></div>
+<h2>Diccionarios {}</h2>
+<p>Pares <strong>clave:valor</strong>. Acceso instantáneo por clave. Mutable.</p>
+<div class="code-block">persona = {
+    <span class="c-str">"nombre"</span>: <span class="c-str">"Carlos"</span>,
+    <span class="c-str">"edad"</span>: <span class="c-num">30</span>,
+    <span class="c-str">"ciudad"</span>: <span class="c-str">"Córdoba"</span>
+}
+
+<span class="c-cm"># Acceso</span>
+persona[<span class="c-str">"nombre"</span>]              <span class="c-cm"># "Carlos"</span>
+persona.get(<span class="c-str">"trabajo"</span>, <span class="c-str">"N/A"</span>)  <span class="c-cm"># "N/A" si no existe</span>
+
+<span class="c-cm"># Iterar</span>
+<span class="c-kw">for</span> k, v <span class="c-kw">in</span> persona.items():
+    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"{k}: {v}"</span>)
+
+<span class="c-cm"># Modificar</span>
+persona[<span class="c-str">"edad"</span>] = <span class="c-num">31</span>
+persona[<span class="c-str">"email"</span>] = <span class="c-str">"carlos@mail.com"</span>
+<span class="c-kw">del</span> persona[<span class="c-str">"ciudad"</span>]</div>
+<h2>Tuplas ()</h2>
+<p>Como listas pero <strong>inmutables</strong>. Perfectas para datos que no deben cambiar.</p>
+<div class="code-block">coordenadas = (<span class="c-num">-34.6</span>, <span class="c-num">-58.4</span>)
+colores_rgb = (<span class="c-num">255</span>, <span class="c-num">128</span>, <span class="c-num">0</span>)
+
+lat, lng = coordenadas  <span class="c-cm"># unpacking</span></div>
+<h2>Sets {}</h2>
+<p>Colección <strong>sin duplicados y sin orden</strong>. Ideal para verificar pertenencia rápidamente.</p>
+<div class="code-block">emails = {<span class="c-str">"a@mail.com"</span>, <span class="c-str">"b@mail.com"</span>, <span class="c-str">"a@mail.com"</span>}
+<span class="c-cm"># → solo 2 elementos (sin duplicados)</span>
+
+<span class="c-str">"a@mail.com"</span> <span class="c-kw">in</span> emails  <span class="c-cm"># True</span>
+
+<span class="c-cm"># Operaciones de conjuntos</span>
+a = {<span class="c-num">1</span>,<span class="c-num">2</span>,<span class="c-num">3</span>}
+b = {<span class="c-num">2</span>,<span class="c-num">3</span>,<span class="c-num">4</span>}
+a | b    <span class="c-cm"># unión: {1,2,3,4}</span>
+a & b    <span class="c-cm"># intersección: {2,3}</span>
+a - b    <span class="c-cm"># diferencia: {1}</span></div>
+<div class="tip-box">¿Cuándo usar cada una? Lista: cuando el orden importa o vas a agregar/quitar. Diccionario: cuando necesitás buscar por nombre/clave. Tupla: datos fijos que no cambian. Set: verificar si algo existe rápido o eliminar duplicados.</div>
+`
+  },
+  { id:'funciones', cat:'⚙️ Funciones', catId:'func', title:'Funciones completas',
+    html:`
+<h1>Funciones</h1>
+<p class="subtitle">El bloque de construcción más importante del código limpio y reutilizable.</p>
+<h2>Definición básica</h2>
+<div class="code-block"><span class="c-kw">def</span> <span class="c-fn">saludar</span>(nombre):
+    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Hola, {nombre}!"</span>)
+
+saludar(<span class="c-str">"Ana"</span>)  <span class="c-cm"># Hola, Ana!</span></div>
+<h2>Parámetros y return</h2>
+<div class="code-block"><span class="c-kw">def</span> <span class="c-fn">suma</span>(a, b):
+    <span class="c-kw">return</span> a + b
+
+resultado = suma(<span class="c-num">3</span>, <span class="c-num">5</span>)  <span class="c-cm"># 8</span>
+
+<span class="c-cm"># Valores por defecto</span>
+<span class="c-kw">def</span> <span class="c-fn">potencia</span>(base, exponente=<span class="c-num">2</span>):
+    <span class="c-kw">return</span> base ** exponente
+
+potencia(<span class="c-num">3</span>)     <span class="c-cm"># 9 (usa exponente=2)</span>
+potencia(<span class="c-num">3</span>, <span class="c-num">3</span>)  <span class="c-cm"># 27</span></div>
+<h2>*args y **kwargs</h2>
+<div class="code-block"><span class="c-cm"># *args: múltiples argumentos posicionales</span>
+<span class="c-kw">def</span> <span class="c-fn">sumar_todo</span>(*numeros):
+    <span class="c-kw">return</span> <span class="c-fn">sum</span>(numeros)
+
+sumar_todo(<span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>, <span class="c-num">4</span>)  <span class="c-cm"># 10</span>
+
+<span class="c-cm"># **kwargs: argumentos con nombre</span>
+<span class="c-kw">def</span> <span class="c-fn">crear_perfil</span>(**datos):
+    <span class="c-kw">for</span> k, v <span class="c-kw">in</span> datos.items():
+        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"{k}: {v}"</span>)
+
+crear_perfil(nombre=<span class="c-str">"Ana"</span>, edad=<span class="c-num">25</span>, ciudad=<span class="c-str">"BA"</span>)</div>
+<h2>Funciones lambda</h2>
+<div class="code-block"><span class="c-cm"># Lambda: función anónima de una línea</span>
+cuadrado = <span class="c-kw">lambda</span> x: x ** <span class="c-num">2</span>
+suma = <span class="c-kw">lambda</span> a, b: a + b
+
+<span class="c-cm"># Útil con map(), filter(), sorted()</span>
+numeros = [<span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>, <span class="c-num">4</span>, <span class="c-num">5</span>]
+cuadrados = <span class="c-fn">list</span>(<span class="c-fn">map</span>(<span class="c-kw">lambda</span> x: x**<span class="c-num">2</span>, numeros))
+pares = <span class="c-fn">list</span>(<span class="c-fn">filter</span>(<span class="c-kw">lambda</span> x: x%<span class="c-num">2</span>==<span class="c-num">0</span>, numeros))</div>
+<h2>Scope (alcance)</h2>
+<div class="code-block">x = <span class="c-str">"global"</span>
+
+<span class="c-kw">def</span> <span class="c-fn">funcion</span>():
+    x = <span class="c-str">"local"</span>  <span class="c-cm"># no modifica la global</span>
+    <span class="c-fn">print</span>(x)
+
+funcion()  <span class="c-cm"># "local"</span>
+<span class="c-fn">print</span>(x)   <span class="c-cm"># "global"</span></div>
+<div class="warn-box">Las variables definidas dentro de una función solo existen dentro de ella. Usar <code>global</code> para modificar variables globales es posible pero no recomendado.</div>
+`
+  },
+  { id:'poo', cat:'🏗️ POO', catId:'oop', title:'Programación Orientada a Objetos',
+    html:`
+<h1>Programación Orientada a Objetos</h1>
+<p class="subtitle">El paradigma que domina el desarrollo profesional — y que toda entrevista técnica toca.</p>
+<h2>¿Qué es la POO?</h2>
+<p>POO es una forma de organizar código donde agrupás <strong>datos</strong> (atributos) y <strong>comportamientos</strong> (métodos) en unidades llamadas <strong>objetos</strong>. Una clase es el molde; un objeto es la instancia creada a partir de ese molde.</p>
+<h2>Clases y objetos</h2>
+<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">Persona</span>:
+    <span class="c-cm"># Constructor: se llama al crear un objeto</span>
+    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, nombre, edad):
+        <span class="c-kw">self</span>.nombre = nombre  <span class="c-cm"># atributo</span>
+        <span class="c-kw">self</span>.edad = edad
+
+    <span class="c-kw">def</span> <span class="c-fn">presentarse</span>(<span class="c-kw">self</span>):  <span class="c-cm"># método</span>
+        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Soy {self.nombre}, {self.edad} años"</span>)
+
+    <span class="c-kw">def</span> <span class="c-fn">__str__</span>(<span class="c-kw">self</span>):  <span class="c-cm"># representación en string</span>
+        <span class="c-kw">return</span> <span class="c-fn">f</span><span class="c-str">"Persona({self.nombre})"</span>
+
+<span class="c-cm"># Crear objetos</span>
+p1 = <span class="c-cls">Persona</span>(<span class="c-str">"Ana"</span>, <span class="c-num">25</span>)
+p2 = <span class="c-cls">Persona</span>(<span class="c-str">"Luis"</span>, <span class="c-num">30</span>)
+p1.presentarse()</div>
+<h2>Herencia</h2>
+<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">Animal</span>:
+    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, nombre):
+        <span class="c-kw">self</span>.nombre = nombre
+    <span class="c-kw">def</span> <span class="c-fn">hablar</span>(<span class="c-kw">self</span>):
+        <span class="c-fn">print</span>(<span class="c-str">"..."</span>)
+
+<span class="c-kw">class</span> <span class="c-cls">Perro</span>(<span class="c-cls">Animal</span>):  <span class="c-cm"># hereda de Animal</span>
+    <span class="c-kw">def</span> <span class="c-fn">hablar</span>(<span class="c-kw">self</span>):       <span class="c-cm"># sobreescribe</span>
+        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"¡Guau! Soy {self.nombre}"</span>)
+
+<span class="c-kw">class</span> <span class="c-cls">Gato</span>(<span class="c-cls">Animal</span>):
+    <span class="c-kw">def</span> <span class="c-fn">hablar</span>(<span class="c-kw">self</span>):
+        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Miau~ soy {self.nombre}"</span>)
+
+animales = [<span class="c-cls">Perro</span>(<span class="c-str">"Rex"</span>), <span class="c-cls">Gato</span>(<span class="c-str">"Luna"</span>)]
+<span class="c-kw">for</span> a <span class="c-kw">in</span> animales:
+    a.hablar()  <span class="c-cm"># polimorfismo</span></div>
+<h2>Encapsulamiento</h2>
+<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">CuentaBancaria</span>:
+    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, saldo):
+        <span class="c-kw">self</span>.__saldo = saldo  <span class="c-cm"># __ = privado</span>
+
+    <span class="c-kw">def</span> <span class="c-fn">depositar</span>(<span class="c-kw">self</span>, monto):
+        <span class="c-kw">if</span> monto > <span class="c-num">0</span>:
+            <span class="c-kw">self</span>.__saldo += monto
+
+    <span class="c-kw">def</span> <span class="c-fn">ver_saldo</span>(<span class="c-kw">self</span>):
+        <span class="c-kw">return</span> <span class="c-kw">self</span>.__saldo</div>
+<div class="tip-box">Los cuatro pilares de la POO que toda entrevista pregunta: <strong>Encapsulamiento</strong> (datos privados), <strong>Herencia</strong> (reutilizar código), <strong>Polimorfismo</strong> (mismo método, distintos comportamientos), <strong>Abstracción</strong> (ocultar complejidad).</div>
+`
+  },
+  { id:'errores', cat:'🛡️ Errores', catId:'errs', title:'Manejo de Errores',
+    html:`
+<h1>Manejo de Errores</h1>
+<p class="subtitle">El código profesional no se rompe — anticipa y maneja lo inesperado.</p>
+<h2>try / except / finally</h2>
+<div class="code-block"><span class="c-kw">try</span>:
+    resultado = <span class="c-num">10</span> / <span class="c-num">0</span>
+<span class="c-kw">except</span> <span class="c-cls">ZeroDivisionError</span>:
+    <span class="c-fn">print</span>(<span class="c-str">"División por cero"</span>)
+<span class="c-kw">except</span> <span class="c-cls">ValueError</span> <span class="c-kw">as</span> e:
+    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Error de valor: {e}"</span>)
+<span class="c-kw">except</span> <span class="c-cls">Exception</span> <span class="c-kw">as</span> e:
+    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Error genérico: {e}"</span>)
+<span class="c-kw">else</span>:
+    <span class="c-fn">print</span>(<span class="c-str">"Todo bien!"</span>)  <span class="c-cm"># si no hubo error</span>
+<span class="c-kw">finally</span>:
+    <span class="c-fn">print</span>(<span class="c-str">"Siempre se ejecuta"</span>)</div>
+<h2>Errores comunes en Python</h2>
+<ul>
+  <li><strong>SyntaxError:</strong> Error en la sintaxis del código.</li>
+  <li><strong>NameError:</strong> Variable no definida.</li>
+  <li><strong>TypeError:</strong> Operación entre tipos incompatibles.</li>
+  <li><strong>IndexError:</strong> Índice fuera de rango en lista.</li>
+  <li><strong>KeyError:</strong> Clave no existe en diccionario.</li>
+  <li><strong>ValueError:</strong> Valor incorrecto para el tipo.</li>
+  <li><strong>ZeroDivisionError:</strong> División por cero.</li>
+  <li><strong>FileNotFoundError:</strong> Archivo no existe.</li>
+</ul>
+<h2>Crear tus propios errores</h2>
+<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">EdadInvalidaError</span>(<span class="c-cls">Exception</span>):
+    <span class="c-kw">pass</span>
+
+<span class="c-kw">def</span> <span class="c-fn">validar_edad</span>(edad):
+    <span class="c-kw">if</span> edad < <span class="c-num">0</span> <span class="c-kw">or</span> edad > <span class="c-num">150</span>:
+        <span class="c-kw">raise</span> <span class="c-cls">EdadInvalidaError</span>(<span class="c-fn">f</span><span class="c-str">"Edad {edad} inválida"</span>)
+    <span class="c-kw">return</span> <span class="c-kw">True</span>
+
+<span class="c-kw">try</span>:
+    validar_edad(<span class="c-num">-5</span>)
+<span class="c-kw">except</span> <span class="c-cls">EdadInvalidaError</span> <span class="c-kw">as</span> e:
+    <span class="c-fn">print</span>(e)</div>
+`
+  },
+  { id:'git', cat:'🔧 Herramientas', catId:'tools', title:'Git y GitHub',
+    html:`
+<h1>Git y GitHub</h1>
+<p class="subtitle">La habilidad no negociable. Sin Git no hay trabajo en equipo — y no hay trabajo.</p>
+<h2>¿Qué es Git?</h2>
+<p>Git es un sistema de <strong>control de versiones distribuido</strong>. Registra cada cambio en tu código, te permite volver atrás, y colaborar con otros sin pisar el trabajo del resto.</p>
+<h2>Comandos esenciales</h2>
+<div class="code-block"><span class="c-cm"># Configuración inicial</span>
+git config --global user.name <span class="c-str">"Tu Nombre"</span>
+git config --global user.email <span class="c-str">"tu@email.com"</span>
+
+<span class="c-cm"># Flujo básico</span>
+git init                    <span class="c-cm"># iniciar repo</span>
+git status                  <span class="c-cm"># ver qué cambió</span>
+git add .                   <span class="c-cm"># agregar todos los cambios</span>
+git add archivo.py          <span class="c-cm"># agregar un archivo específico</span>
+git commit -m <span class="c-str">"mensaje"</span>     <span class="c-cm"># guardar snapshot</span>
+git log --oneline           <span class="c-cm"># ver historial</span></div>
+<h2>Branches (ramas)</h2>
+<div class="code-block">git branch                  <span class="c-cm"># ver ramas</span>
+git branch feature/login    <span class="c-cm"># crear rama</span>
+git checkout feature/login  <span class="c-cm"># cambiar a rama</span>
+git checkout -b nueva-rama  <span class="c-cm"># crear y cambiar</span>
+git merge feature/login     <span class="c-cm"># unir rama al main</span></div>
+<h2>GitHub</h2>
+<div class="code-block"><span class="c-cm"># Conectar con GitHub</span>
+git remote add origin https://github.com/user/repo.git
+git push -u origin main     <span class="c-cm"># subir al repo</span>
+git pull origin main        <span class="c-cm"># bajar cambios</span>
+git clone URL               <span class="c-cm"># clonar repo existente</span></div>
+<div class="tip-box">Un buen mensaje de commit sigue el formato: <code>tipo: descripción breve</code>. Ejemplos: <code>feat: agregar login de usuarios</code>, <code>fix: corregir error en validación</code>, <code>docs: actualizar README</code>.</div>
+<h2>El .gitignore</h2>
+<p>Archivo que le dice a Git qué ignorar (no subir al repo).</p>
+<div class="code-block"><span class="c-cm"># .gitignore típico para Python</span>
+__pycache__/
+*.pyc
+.env
+venv/
+.DS_Store</div>
+`
+  },
+  { id:'venvs', cat:'🔧 Herramientas', catId:'tools', title:'Entornos Virtuales',
+    html:`
+<h1>Entornos Virtuales</h1>
+<p class="subtitle">Cada proyecto vive en su propio mundo — sin conflictos de dependencias.</p>
+<h2>¿Por qué necesitás venv?</h2>
+<p>Imaginá que el proyecto A necesita Django 3.2 y el proyecto B necesita Django 4.2. Sin entornos virtuales, uno rompe al otro. Con <code>venv</code>, cada proyecto tiene sus propias librerías aisladas.</p>
+<h2>Crear y activar</h2>
+<div class="code-block"><span class="c-cm"># Crear entorno virtual</span>
+python -m venv venv
+
+<span class="c-cm"># Activar en Linux/Mac</span>
+source venv/bin/activate
+
+<span class="c-cm"># Activar en Windows</span>
+venv\\Scripts\\activate
+
+<span class="c-cm"># Desactivar</span>
+deactivate</div>
+<h2>pip — gestor de paquetes</h2>
+<div class="code-block"><span class="c-cm"># Instalar librería</span>
+pip install requests
+
+<span class="c-cm"># Instalar versión específica</span>
+pip install django==4.2
+
+<span class="c-cm"># Ver instaladas</span>
+pip list
+
+<span class="c-cm"># Guardar dependencias</span>
+pip freeze > requirements.txt
+
+<span class="c-cm"># Instalar desde requirements</span>
+pip install -r requirements.txt</div>
+<div class="tip-box">Siempre incluí <code>venv/</code> en tu <code>.gitignore</code>. Los demás developers instalarán las dependencias con <code>pip install -r requirements.txt</code> en su propio entorno.</div>
+`
+  },
+  { id:'fastapi-intro', cat:'🌐 Backend', catId:'backend', title:'FastAPI — APIs modernas',
+    html:`
+<h1>FastAPI</h1>
+<p class="subtitle">El framework más moderno y demandado para construir APIs con Python.</p>
+<h2>¿Por qué FastAPI?</h2>
+<ul>
+  <li><strong>Rápido:</strong> Comparable a Node.js y Go en rendimiento.</li>
+  <li><strong>Documentación automática:</strong> Genera Swagger UI al instante.</li>
+  <li><strong>Type hints:</strong> Validación automática con Pydantic.</li>
+  <li><strong>Async nativo:</strong> Soporta programación asíncrona.</li>
+</ul>
+<h2>Instalación y primer endpoint</h2>
+<div class="code-block">pip install fastapi uvicorn</div>
+<div class="code-block"><span class="c-cm"># main.py</span>
+<span class="c-kw">from</span> fastapi <span class="c-kw">import</span> FastAPI
+
+app = <span class="c-cls">FastAPI</span>()
+
+<span class="c-kw">@</span>app.get(<span class="c-str">"/"</span>)
+<span class="c-kw">def</span> <span class="c-fn">inicio</span>():
+    <span class="c-kw">return</span> {<span class="c-str">"mensaje"</span>: <span class="c-str">"¡Hola desde la API!"</span>}
+
+<span class="c-kw">@</span>app.get(<span class="c-str">"/usuarios/{id}"</span>)
+<span class="c-kw">def</span> <span class="c-fn">obtener_usuario</span>(id: <span class="c-fn">int</span>):
+    <span class="c-kw">return</span> {<span class="c-str">"id"</span>: id, <span class="c-str">"nombre"</span>: <span class="c-str">"Ana"</span>}
+
+<span class="c-cm"># Ejecutar: uvicorn main:app --reload</span></div>
+<h2>CRUD completo</h2>
+<div class="code-block"><span class="c-kw">from</span> fastapi <span class="c-kw">import</span> FastAPI, HTTPException
+<span class="c-kw">from</span> pydantic <span class="c-kw">import</span> BaseModel
+
+app = <span class="c-cls">FastAPI</span>()
+db = []  <span class="c-cm"># simulación de base de datos</span>
+
+<span class="c-kw">class</span> <span class="c-cls">Tarea</span>(<span class="c-cls">BaseModel</span>):
+    titulo: <span class="c-fn">str</span>
+    completada: <span class="c-fn">bool</span> = <span class="c-kw">False</span>
+
+<span class="c-kw">@</span>app.get(<span class="c-str">"/tareas"</span>)          <span class="c-cm"># GET — listar</span>
+<span class="c-kw">def</span> <span class="c-fn">listar</span>(): <span class="c-kw">return</span> db
+
+<span class="c-kw">@</span>app.post(<span class="c-str">"/tareas"</span>)         <span class="c-cm"># POST — crear</span>
+<span class="c-kw">def</span> <span class="c-fn">crear</span>(tarea: <span class="c-cls">Tarea</span>):
+    db.append(tarea)
+    <span class="c-kw">return</span> tarea
+
+<span class="c-kw">@</span>app.delete(<span class="c-str">"/tareas/{i}"</span>)   <span class="c-cm"># DELETE — borrar</span>
+<span class="c-kw">def</span> <span class="c-fn">borrar</span>(i: <span class="c-fn">int</span>):
+    <span class="c-kw">if</span> i >= <span class="c-fn">len</span>(db):
+        <span class="c-kw">raise</span> <span class="c-cls">HTTPException</span>(<span class="c-num">404</span>, <span class="c-str">"No encontrada"</span>)
+    <span class="c-kw">return</span> db.pop(i)</div>
+<div class="tip-box">Al correr tu app, FastAPI genera documentación interactiva automáticamente en <code>http://localhost:8000/docs</code>. Podés probar todos tus endpoints sin Postman.</div>
+`
+  },
+  { id:'sql-intro', cat:'🗄️ Bases de datos', catId:'db', title:'SQL con Python',
+    html:`
+<h1>Bases de Datos SQL</h1>
+<p class="subtitle">Casi toda aplicación necesita guardar datos. SQL es el idioma para hablar con esa base.</p>
+<h2>Conceptos clave</h2>
+<ul>
+  <li><strong>Tabla:</strong> Como una hoja de cálculo — filas y columnas.</li>
+  <li><strong>Fila/Registro:</strong> Un elemento en la tabla.</li>
+  <li><strong>Columna/Campo:</strong> Un atributo del registro.</li>
+  <li><strong>Primary Key:</strong> Identificador único por fila.</li>
+  <li><strong>Foreign Key:</strong> Referencia a otra tabla.</li>
+</ul>
+<h2>SQL básico</h2>
+<div class="code-block"><span class="c-cm">-- Crear tabla</span>
+CREATE TABLE usuarios (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    email TEXT UNIQUE,
+    edad INTEGER
+);
+
+<span class="c-cm">-- Insertar</span>
+INSERT INTO usuarios (nombre, email, edad)
+VALUES ('Ana', 'ana@mail.com', 25);
+
+<span class="c-cm">-- Consultar</span>
+SELECT * FROM usuarios;
+SELECT nombre, edad FROM usuarios WHERE edad > 18;
+SELECT * FROM usuarios ORDER BY nombre ASC;
+
+<span class="c-cm">-- Actualizar</span>
+UPDATE usuarios SET edad = 26 WHERE email = 'ana@mail.com';
+
+<span class="c-cm">-- Eliminar</span>
+DELETE FROM usuarios WHERE id = 1;</div>
+<h2>Python + SQLite</h2>
+<div class="code-block"><span class="c-kw">import</span> sqlite3
+
+<span class="c-cm"># Conectar (crea el archivo si no existe)</span>
+conn = sqlite3.connect(<span class="c-str">"mi_db.sqlite"</span>)
+cursor = conn.cursor()
+
+<span class="c-cm"># Crear tabla</span>
+cursor.execute(<span class="c-str">"""
+    CREATE TABLE IF NOT EXISTS productos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        precio REAL
+    )
+"""</span>)
+
+<span class="c-cm"># Insertar</span>
+cursor.execute(<span class="c-str">"INSERT INTO productos (nombre, precio) VALUES (?, ?)"</span>,
+               (<span class="c-str">"Manzana"</span>, <span class="c-num">1.50</span>))
+conn.commit()
+
+<span class="c-cm"># Consultar</span>
+cursor.execute(<span class="c-str">"SELECT * FROM productos"</span>)
+productos = cursor.fetchall()
+<span class="c-fn">print</span>(productos)
+
+conn.close()</div>
+<div class="tip-box">Para proyectos reales usá <strong>PostgreSQL</strong> (más potente) y <strong>SQLAlchemy</strong> como ORM para interactuar con la base sin escribir SQL crudo.</div>
+`
+  },
+  { id:'testing', cat:'✅ Calidad', catId:'quality', title:'Testing con pytest',
+    html:`
+<h1>Testing con pytest</h1>
+<p class="subtitle">El código sin tests es código que eventualmente va a romperse en producción.</p>
+<h2>¿Por qué testear?</h2>
+<p>Los tests automáticos verifican que tu código funciona correctamente — y siguen verificándolo cada vez que hacés un cambio. Sin tests, cada deploy es una apuesta.</p>
+<h2>Instalación</h2>
+<div class="code-block">pip install pytest</div>
+<h2>Tu primer test</h2>
+<div class="code-block"><span class="c-cm"># calculadora.py</span>
+<span class="c-kw">def</span> <span class="c-fn">sumar</span>(a, b):
+    <span class="c-kw">return</span> a + b
+
+<span class="c-kw">def</span> <span class="c-fn">dividir</span>(a, b):
+    <span class="c-kw">if</span> b == <span class="c-num">0</span>:
+        <span class="c-kw">raise</span> <span class="c-cls">ValueError</span>(<span class="c-str">"No se puede dividir por cero"</span>)
+    <span class="c-kw">return</span> a / b</div>
+<div class="code-block"><span class="c-cm"># test_calculadora.py</span>
+<span class="c-kw">from</span> calculadora <span class="c-kw">import</span> sumar, dividir
+<span class="c-kw">import</span> pytest
+
+<span class="c-kw">def</span> <span class="c-fn">test_sumar_positivos</span>():
+    <span class="c-kw">assert</span> sumar(<span class="c-num">2</span>, <span class="c-num">3</span>) == <span class="c-num">5</span>
+
+<span class="c-kw">def</span> <span class="c-fn">test_sumar_negativos</span>():
+    <span class="c-kw">assert</span> sumar(-<span class="c-num">1</span>, -<span class="c-num">1</span>) == -<span class="c-num">2</span>
+
+<span class="c-kw">def</span> <span class="c-fn">test_dividir_por_cero</span>():
+    <span class="c-kw">with</span> pytest.raises(<span class="c-cls">ValueError</span>):
+        dividir(<span class="c-num">10</span>, <span class="c-num">0</span>)</div>
+<div class="code-block"><span class="c-cm"># Ejecutar tests</span>
+pytest                    <span class="c-cm"># todos los tests</span>
+pytest -v                 <span class="c-cm"># verbose (más detalle)</span>
+pytest test_calculadora.py <span class="c-cm"># archivo específico</span></div>
+<div class="tip-box">Nombrá tus archivos de test como <code>test_*.py</code> y tus funciones de test como <code>def test_*()</code>. pytest los detecta automáticamente.</div>
+`
+  }
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let state = {
+  currentLesson: null,
+  completed: JSON.parse(localStorage.getItem('pq_done')||'[]'),
+  points: parseInt(localStorage.getItem('pq_pts')||'0'),
+  lives: parseInt(localStorage.getItem('pq_lives')||'3'),
+  streak: parseInt(localStorage.getItem('pq_streak')||'0'),
+  lastDay: localStorage.getItem('pq_lastday')||'',
+  roadmapDone: JSON.parse(localStorage.getItem('pq_rmdone')||'[]'),
+  chAiHist: [],
+  libAiHist: []
+};
+function save(){
+  localStorage.setItem('pq_done',JSON.stringify(state.completed));
+  localStorage.setItem('pq_pts',state.points);
+  localStorage.setItem('pq_lives',state.lives);
+  localStorage.setItem('pq_streak',state.streak);
+  localStorage.setItem('pq_lastday',state.lastDay);
+  localStorage.setItem('pq_rmdone',JSON.stringify(state.roadmapDone));
+}
+
+// ══════════════════════════════════════════
+//  PYODIDE
+// ══════════════════════════════════════════
+let pyodide=null, pyReady=false;
+async function loadPy(){
+  try{
+    document.getElementById('py-txt').textContent='Inicializando Python...';
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage(['micropip']);
+    try{ await pyodide.loadPackage('scikit-learn'); }catch(e){}
+    pyReady=true;
+    document.getElementById('pyodide-bar').classList.add('hidden');
+    const b=document.getElementById('py-badge');
+    b.textContent='⬤ Python activo';
+    b.style.color='var(--green)';
+    b.style.borderColor='rgba(74,222,128,0.3)';
+  }catch(e){
+    document.getElementById('py-txt').textContent='Modo simulado activo';
+    setTimeout(()=>document.getElementById('pyodide-bar').classList.add('hidden'),3000);
+  }
+}
+async function execPy(code){
+  if(!pyReady) return {out:'',err:'Python cargando... esperá un momento.',isErr:true};
+  let out='',err='';
+  pyodide.setStdout({batched:t=>{out+=t+'\n';}});
+  pyodide.setStderr({batched:t=>{err+=t+'\n';}});
+  try{
+    await pyodide.runPythonAsync(code);
+    return {out:out.trimEnd(),err:err.trimEnd(),isErr:false};
+  }catch(e){
+    return {out:out.trimEnd(),err:e.message||String(e),isErr:true};
+  }
+}
+
+// ══════════════════════════════════════════
+//  CODEMIRROR
+// ══════════════════════════════════════════
+let editor=null;
+function initCM(){
+  const host=document.getElementById('cm-host');
+  host.innerHTML='';
+  const ta=document.createElement('textarea');
+  host.appendChild(ta);
+  editor=CodeMirror.fromTextArea(ta,{
+    mode:'python',theme:'material-darker',
+    lineNumbers:true,matchBrackets:true,autoCloseBrackets:true,
+    indentUnit:4,tabSize:4,indentWithTabs:false,
+    extraKeys:{
+      'Tab':cm=>cm.replaceSelection('    '),
+      'Ctrl-Enter':()=>runCode(),
+      'Cmd-Enter':()=>runCode()
+    }
+  });
+  editor.setSize('100%','100%');
+}
+const getCode=()=>editor?editor.getValue():'';
+const setCode=c=>{if(editor){editor.setValue(c);editor.clearHistory();editor.focus();}};
+
+// ══════════════════════════════════════════
+//  VIEWS
+// ══════════════════════════════════════════
+let currentView='challenges';
+function showView(v){
+  currentView=v;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('tab-'+v).classList.add('active');
+  if(v==='challenges') setTimeout(()=>editor&&editor.refresh(),50);
+  if(v==='library') renderLibraryNav();
+  if(v==='roadmap') renderRoadmap();
+}
+
+// ══════════════════════════════════════════
+//  LIVES & STREAK
+// ══════════════════════════════════════════
+function renderLives(){
+  for(let i=1;i<=3;i++) document.getElementById('h'+i).classList.toggle('lost',i>state.lives);
+}
+function loseLife(){
+  if(state.lives<=0)return;
+  state.lives--;save();renderLives();
+  const f=document.getElementById('life-flash');
+  f.classList.add('show');setTimeout(()=>f.classList.remove('show'),600);
+  const lr=document.getElementById('lives-row')||document.querySelector('.lives-row');
+  if(lr){lr.classList.add('shake');setTimeout(()=>lr.classList.remove('shake'),350);}
+  if(state.lives===0)setTimeout(()=>{
+    document.getElementById('go-pts').textContent=state.points+' pts';
+    document.getElementById('gameover').classList.add('show');
+  },800);
+}
+function resetLives(){state.lives=3;save();renderLives();document.getElementById('gameover').classList.remove('show');}
+function updateStreak(){
+  const today=new Date().toDateString();
+  const yest=new Date(Date.now()-86400000).toDateString();
+  if(state.lastDay===today){}
+  else if(state.lastDay===yest){state.streak++;state.lastDay=today;}
+  else{state.streak=1;state.lastDay=today;}
+  save();
+  const el=document.getElementById('streak-hud');
+  document.getElementById('streak-val').textContent=state.streak+'d';
+  if(state.streak>=2)el.classList.add('streak-active');
+}
+function updatePts(){document.getElementById('pts-hud').textContent=state.points+' pts';}
+
+// ══════════════════════════════════════════
+//  SIDEBAR DESAFÍOS
+// ══════════════════════════════════════════
+function buildSidebar(){
+  const list=document.getElementById('module-list');
+  list.innerHTML='';
+  CURRICULUM.forEach((mod,mi)=>{
+    const done=mod.lessons.filter(l=>state.completed.includes(l.id)).length;
+    const d=document.createElement('div');
+    d.className='module'+(mi===0?' open':'');
+    d.innerHTML=`<div class="module-title" onclick="this.parentElement.classList.toggle('open')">
+      <span>${mod.icon}</span><span>${mod.title}</span>
+      <span class="mod-prog">${done}/${mod.lessons.length}</span>
+      <span class="mod-chev">▶</span></div>
+      <div class="lesson-list">${mod.lessons.map(l=>`
+        <div class="lesson-item${state.completed.includes(l.id)?' done':''}" id="li-${l.id}" onclick="loadLessonById('${l.id}')">
+          ${l.title}</div>`).join('')}</div>`;
+    list.appendChild(d);
+  });
+  const total=CURRICULUM.reduce((s,m)=>s+m.lessons.length,0);
+  document.getElementById('global-pbar').style.width=(state.completed.length/total*100)+'%';
+}
+
+function loadLessonById(id){
+  for(const m of CURRICULUM)for(const l of m.lessons)if(l.id===id){loadLesson(l);return;}
+}
+function loadLesson(lesson){
+  state.currentLesson=lesson;
+  document.getElementById('ch-kyu').textContent=lesson.kyu+' · '+lesson.pts+' pts';
+  document.getElementById('ch-title').textContent=lesson.title;
+  document.getElementById('ch-desc').innerHTML=lesson.task;
+  const ex=document.getElementById('ch-examples');
+  if(lesson.examples&&lesson.examples[0].input){
+    ex.style.display='block';
+    ex.innerHTML=lesson.examples.map(e=>`<span style="color:var(--text-dim)">Ej: </span><code style="color:var(--amber)">${e.input.replace(/\n/g,'↵ ')}</code>${e.output?` → <code style="color:var(--green)">${e.output}</code>`:''}`).join('<br>');
+  }else{ex.style.display='none';}
+  setCode(lesson.starter);
+  document.getElementById('ed-file').textContent=lesson.id+'.py';
+  setOut([{t:'# '+lesson.title+' — Ctrl+Enter para ejecutar',c:'oi'}]);
+  setDot('idle');
+  document.querySelectorAll('.lesson-item').forEach(e=>e.classList.remove('active'));
+  const li=document.getElementById('li-'+lesson.id);
+  if(li&&!li.classList.contains('done'))li.classList.add('active');
+  addMsg('ai-msgs-ch','ai',`**${lesson.title}** cargado.\nTema: *${lesson.topic}*. ¡A codear! 💪`);
+  setTimeout(()=>editor&&editor.refresh(),80);
+}
+function resetCode(){if(state.currentLesson)setCode(state.currentLesson.starter);}
+
+// ══════════════════════════════════════════
+//  OUTPUT
+// ══════════════════════════════════════════
+function setDot(s){
+  const d=document.getElementById('out-dot');
+  d.className='out-dot'+(s==='idle'?'':s==='running'?' running':s==='pass'?' pass':' fail');
+}
+function setOut(lines){
+  document.getElementById('out-lines').innerHTML=lines.map(l=>`<div class="${l.c||'oi'}">${esc(l.t)}</div>`).join('');
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function runCode(){
+  const code=getCode();if(!code.trim())return;
+  setDot('running');
+  document.getElementById('out-status').textContent='Ejecutando...';
+  document.getElementById('exec-t').textContent='';
+  setOut([{t:'$ python '+( state.currentLesson?.id||'script')+'.py',c:'oi'}]);
+  const t0=performance.now();
+  if(!pyReady){
+    setOut([{t:'⚠ Python cargando — salida simulada',c:'ow'}]);
+    setDot('idle');return;
+  }
+  const r=await execPy(code);
+  const ms=((performance.now()-t0)/1000).toFixed(2);
+  const lines=[{t:'$ python '+(state.currentLesson?.id||'script')+'.py',c:'oi'}];
+  if(r.out) r.out.split('\n').forEach(l=>lines.push({t:l,c:'os'}));
+  if(r.err) r.err.split('\n').forEach(l=>lines.push({t:l,c:'oe'}));
+  if(!r.out&&!r.err) lines.push({t:'(sin salida)',c:'oi'});
+  setOut(lines);
+  setDot(r.isErr?'fail':'pass');
+  document.getElementById('out-status').textContent=r.isErr?'Error':'OK';
+  document.getElementById('exec-t').textContent=ms+'s';
+}
+
+async function submitSolution(){
+  if(!state.currentLesson)return;
+  const code=getCode(), lesson=state.currentLesson;
+  setDot('running');
+  document.getElementById('out-status').textContent='Verificando...';
+  let realOut='';
+  if(pyReady){
+    const r=await execPy(code);
+    realOut=r.out;
+    if(r.isErr){
+      setOut([{t:'✗ Error en tu código:',c:'of'},...r.err.split('\n').map(l=>({t:'  '+l,c:'oe'})),{t:'',c:''},{t:'Arreglá el error e intentá de nuevo.',c:'ow'}]);
+      setDot('fail');document.getElementById('out-status').textContent='Error';
+      loseLife();return;
+    }
+  }
+  const results=lesson.tests.map(t=>({desc:t.desc,pass:t.fn(realOut,code)}));
+  const allPass=results.every(r=>r.pass);
+  const lines=results.map(r=>({t:(r.pass?'✓ ':'✗ ')+r.desc,c:r.pass?'op':'of'}));
+  if(realOut){lines.push({t:'',c:''},{t:'Salida:',c:'oi'});realOut.split('\n').slice(0,8).forEach(l=>lines.push({t:'  '+l,c:'os'}));}
+  lines.push({t:'',c:''},{t:`${results.filter(r=>r.pass).length}/${results.length} checks`,c:allPass?'op':'ow'});
+  setOut(lines);
+  if(!allPass){setDot('fail');document.getElementById('out-status').textContent='Revisá';loseLife();return;}
+  if(!state.completed.includes(lesson.id)){state.completed.push(lesson.id);state.points+=lesson.pts;save();}
+  setDot('pass');confetti();updatePts();buildSidebar();
+  document.getElementById('out-status').textContent='+'+lesson.pts+'pts!';
+  getAiFeedback(code,lesson);
+  setTimeout(autoAdvance,3500);
+}
+function autoAdvance(){
+  let next=false;
+  for(const m of CURRICULUM)for(const l of m.lessons){
+    if(next&&!state.completed.includes(l.id)){loadLesson(l);return;}
+    if(l.id===state.currentLesson?.id)next=true;
+  }
+}
+
+// ══════════════════════════════════════════
+//  BIBLIOTECA
+// ══════════════════════════════════════════
+function renderLibraryNav(){
+  const nav=document.getElementById('lib-nav');
+  if(nav.innerHTML)return;
+  const cats={};
+  LIBRARY.forEach(t=>{if(!cats[t.catId])cats[t.catId]={label:t.cat,topics:[]};cats[t.catId].topics.push(t);});
+  nav.innerHTML=Object.entries(cats).map(([cid,cat])=>`
+    <div class="lib-cat open">
+      <div class="lib-cat-title" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cat-icon">${cat.label.split(' ')[0]}</span>
+        <span>${cat.label.split(' ').slice(1).join(' ')}</span>
+      </div>
+      <div class="lib-topic-list">
+        ${cat.topics.map(t=>`<div class="lib-topic" id="lt-${t.id}" onclick="loadTopic('${t.id}')">${t.title}</div>`).join('')}
+      </div>
+    </div>`).join('');
+  loadTopic(LIBRARY[0].id);
+}
+function loadTopic(id){
+  const t=LIBRARY.find(x=>x.id===id);if(!t)return;
+  document.querySelectorAll('.lib-topic').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('lt-'+id);if(el)el.classList.add('active');
+  document.getElementById('lib-content').innerHTML=t.html;
+}
+
+// ══════════════════════════════════════════
+//  ROADMAP
+// ══════════════════════════════════════════
+const PHASES=[
+  {id:'p1',cls:'p1',num:'FASE 01',title:'Fundamentos Python',period:'Meses 1 – 3',
+   topics:[
+    {main:'Sintaxis y tipos de datos',sub:'Variables, strings, int, float, bool, None'},
+    {main:'Estructuras de datos',sub:'Listas, diccionarios, tuplas, sets — y cuándo usar cada una'},
+    {main:'Control de flujo',sub:'if/elif/else, for, while, break, continue'},
+    {main:'Funciones',sub:'def, parámetros, return, *args, **kwargs, lambda, scope'},
+    {main:'POO',sub:'Clases, objetos, herencia, polimorfismo, encapsulamiento'},
+    {main:'Manejo de errores',sub:'try/except/finally, raise, errores custom'}
+   ]},
+  {id:'p2',cls:'p2',num:'FASE 02',title:'Herramientas Reales',period:'Meses 4 – 5',
+   topics:[
+    {main:'Git y GitHub',sub:'commits, branches, pull requests, merge, .gitignore'},
+    {main:'Entornos virtuales',sub:'venv, pip, requirements.txt, poetry (opcional)'},
+    {main:'Terminal/Bash',sub:'Navegación, variables de entorno, scripts básicos'},
+    {main:'VS Code + extensiones',sub:'Python extension, Pylance, Black formatter, GitHub Copilot'},
+    {main:'Docstrings y type hints',sub:'Documentación del código, tipado estático básico'}
+   ]},
+  {id:'p3',cls:'p3',num:'FASE 03',title:'Bases de Datos',period:'Meses 6 – 8',
+   topics:[
+    {main:'SQL fundamental',sub:'SELECT, INSERT, UPDATE, DELETE, JOINs, índices'},
+    {main:'PostgreSQL',sub:'Instalación, psycopg2, transacciones, relaciones'},
+    {main:'SQLAlchemy',sub:'ORM: modelos, sessions, queries, migraciones con Alembic'},
+    {main:'MongoDB basics',sub:'Documentos, colecciones, PyMongo, operaciones CRUD'},
+    {main:'Redis (básico)',sub:'Cache en memoria, conceptos de clave-valor'}
+   ]},
+  {id:'p4',cls:'p4',num:'FASE 04',title:'Backend y APIs',period:'Meses 9 – 14',
+   topics:[
+    {main:'FastAPI',sub:'Endpoints, Pydantic, validación, documentación automática'},
+    {main:'APIs RESTful',sub:'GET/POST/PUT/DELETE, JSON, status codes, autenticación JWT'},
+    {main:'Django (alternativa)',sub:'MVT, ORM nativo, admin, formularios, Django REST'},
+    {main:'Autenticación',sub:'JWT, OAuth2, bcrypt, sesiones, permisos'},
+    {main:'APIs de terceros',sub:'requests, httpx, async, integración con servicios externos'},
+    {main:'asyncio y concurrencia',sub:'async/await, tareas en paralelo, optimización de recursos'}
+   ]},
+  {id:'p5',cls:'p5',num:'FASE 05',title:'Calidad y Despliegue',period:'Meses 15 – 18',
+   topics:[
+    {main:'Testing',sub:'pytest, tests unitarios, tests de integración, cobertura de código'},
+    {main:'Principios SOLID',sub:'Single responsibility, DRY, código limpio, refactoring'},
+    {main:'Docker',sub:'Contenedores, Dockerfile, docker-compose, imágenes'},
+    {main:'CI/CD básico',sub:'GitHub Actions, despliegue automático, variables de entorno'},
+    {main:'Cloud deployment',sub:'Render, Railway, AWS EC2/Lambda, Google Cloud Run (básico)'}
+   ]},
+  {id:'p6',cls:'p6',num:'FASE 06',title:'Portafolio y Trabajo',period:'Año 2',full:true,
+   topics:[
+    {main:'Proyecto 1 — API de e-commerce',sub:'FastAPI + PostgreSQL + JWT + Docker. CRUD completo, carrito, órdenes.'},
+    {main:'Proyecto 2 — Bot/Automatización',sub:'Script complejo: scraping, procesamiento de datos, envío de reportes.'},
+    {main:'Proyecto 3 — App con IA integrada',sub:'Backend Python + LLM API (Claude/OpenAI) + base de datos + deploy.'},
+    {main:'LinkedIn y GitHub activo',sub:'README bonitos, contribuciones visibles, presencia profesional.'},
+    {main:'English técnico',sub:'Leer docs, entrevistas en inglés, comunicación remota — tan importante como el código.'}
+   ]}
+];
+
+const RESOURCES=[
+  {type:'GRATUITO',name:'CS50P — Harvard',desc:'El mejor curso introductorio de Python del mundo. 100% gratis, subtítulos en español.',link:'https://cs50.harvard.edu/python',tag:'Indispensable'},
+  {type:'GRATUITO',name:'roadmap.sh/python',desc:'Mapa visual interactivo del camino completo, con recursos para cada nodo.',link:'https://roadmap.sh/python',tag:'Referencia'},
+  {type:'GRATUITO',name:'Real Python',desc:'Los mejores artículos y tutoriales de Python en internet. Explica temas complejos con claridad.',link:'https://realpython.com',tag:'Profundizar'},
+  {type:'GRATUITO',name:'FreeCodeCamp YouTube',desc:'Cursos de 4-12hs en español e inglés. Python, FastAPI, bases de datos y más.',link:'https://youtube.com/@freecodecamp',tag:'Videos'},
+  {type:'OFICIAL',name:'docs.python.org',desc:'La fuente de la verdad. Aprender a leer la documentación oficial es una habilidad clave.',link:'https://docs.python.org/3',tag:'Referencia'},
+  {type:'PRÁCTICA',name:'Codewars',desc:'Desafíos de lógica y algoritmos. Empezá en 8kyu y subí. Preparación para entrevistas técnicas.',link:'https://codewars.com',tag:'Diario'},
+  {type:'PAGO',name:'Udemy — Angela Yu',desc:'"100 Days of Code" — el bootcamp más práctico. Esperá oferta, baja a ~$10-15.',link:'https://udemy.com',tag:'Completo'},
+  {type:'COMUNIDAD',name:'daily.dev',desc:'Feed de noticias tech configurable. Seguí temas Python, FastAPI, IA. Hábito diario.',link:'https://daily.dev',tag:'Hábito'},
+  {type:'COMUNIDAD',name:'Stack Overflow',desc:'Para cuando estés trabado. Aprender a buscar y preguntar bien es una habilidad profesional.',link:'https://stackoverflow.com',tag:'Resolver dudas'}
+];
+
+function renderRoadmap(){
+  const wrap=document.getElementById('roadmap-content');
+  if(wrap.innerHTML)return;
+  let html=`
+  <div class="roadmap-hero">
+    <h1>🗺️ Ruta: de cero a trabajo en Python</h1>
+    <p>Un plan realista de <strong>1 a 2 años</strong> con constancia. No es teoría: es la estructura exacta que usan los desarrolladores Junior que consiguen trabajo en empresas reales.</p>
+  </div>
+  <div class="phase-grid">
+  ${PHASES.map(p=>`
+    <div class="phase-card ${p.cls}${p.full?' full':''}">
+      <button class="phase-check${state.roadmapDone.includes(p.id)?' done':''}" onclick="togglePhase('${p.id}')" title="Marcar como completado">
+        ${state.roadmapDone.includes(p.id)?'✓':'○'}
+      </button>
+      <div class="phase-num">${p.num}</div>
+      <div class="phase-title">${p.title}</div>
+      <div class="phase-period">⏱ ${p.period}</div>
+      <div class="phase-topics">
+        ${p.topics.map(t=>`<div class="phase-topic"><div class="phase-topic-dot"></div><div><strong>${t.main}</strong>${t.sub}</div></div>`).join('')}
+      </div>
+    </div>`).join('')}
+  </div>
+  <div class="projects-section">
+    <div class="res-title">🏗️ Proyectos para el portafolio</div>
+    <div class="proj-grid">
+      <div class="proj-card">
+        <div class="proj-num">PROYECTO 01</div>
+        <div class="proj-name">API de Gestión de Tareas</div>
+        <div class="proj-desc">CRUD completo con autenticación JWT, base de datos PostgreSQL, documentación Swagger y tests con pytest. El proyecto "Hello World" de cualquier backend developer.</div>
+        <div class="proj-tech"><span>FastAPI</span><span>PostgreSQL</span><span>JWT</span><span>pytest</span><span>Docker</span></div>
+      </div>
+      <div class="proj-card">
+        <div class="proj-num">PROYECTO 02</div>
+        <div class="proj-name">Bot de Automatización</div>
+        <div class="proj-desc">Script que extrae datos de la web, los procesa y envía un reporte por email o Telegram. Demuestra pensamiento algorítmico y uso de APIs reales.</div>
+        <div class="proj-tech"><span>requests</span><span>BeautifulSoup</span><span>pandas</span><span>schedule</span><span>smtplib</span></div>
+      </div>
+      <div class="proj-card">
+        <div class="proj-num">PROYECTO 03</div>
+        <div class="proj-name">App con IA integrada</div>
+        <div class="proj-desc">Backend Python + integración con un LLM (Claude/OpenAI) + base de datos + deploy en la nube. El proyecto que más impresiona a las empresas hoy en día.</div>
+        <div class="proj-tech"><span>FastAPI</span><span>Claude API</span><span>PostgreSQL</span><span>Docker</span><span>Render</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="resources-section">
+    <div class="res-title">📚 Recursos recomendados</div>
+    <div class="res-grid">
+      ${RESOURCES.map(r=>`
+      <div class="res-card">
+        <div class="res-card-type">${r.type}</div>
+        <div class="res-card-name">${r.name}</div>
+        <div class="res-card-desc">${r.desc}</div>
+        <div class="res-tag">${r.tag}</div>
+        <br><a class="res-card-link" href="${r.link}" target="_blank">→ Visitar</a>
+      </div>`).join('')}
+    </div>
+  </div>`;
+  wrap.innerHTML=html;
+}
+function togglePhase(id){
+  const idx=state.roadmapDone.indexOf(id);
+  if(idx>=0)state.roadmapDone.splice(idx,1);
+  else state.roadmapDone.push(id);
+  save();
+  document.getElementById('roadmap-content').innerHTML='';
+  renderRoadmap();
+}
+
+// ══════════════════════════════════════════
+//  AI — shared
+// ══════════════════════════════════════════
+function addMsg(containerId, role, text){
+  const c=document.getElementById(containerId);if(!c)return;
+  const d=document.createElement('div');
+  d.className=`msg msg-${role} fadein`;
+  d.innerHTML=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/\n/g,'<br>');
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+function typing(containerId){
+  const c=document.getElementById(containerId);if(!c)return null;
+  const d=document.createElement('div');d.className='msg msg-ai fadein';d.id='typing-'+containerId;
+  d.innerHTML='<span style="color:var(--text-dim);animation:blink 1s infinite;display:inline-block">Escribiendo...</span>';
+  c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+}
+async function callAI(system, messages){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system,messages})
+  });
+  const data=await r.json();
+  return data.content?.map(c=>c.text||'').join('')||'Error al conectar.';
+}
+
+// Challenge AI
+function chQuick(t){sendChMsg(t);}
+function askHintChallenge(){
+  sendChMsg(`Necesito una pista para "${state.currentLesson?.title}". Mi código:\n\`\`\`python\n${getCode()}\n\`\`\``);
+}
+async function sendChMsg(override){
+  const inp=document.getElementById('ch-ai-inp');
+  const text=override||inp.value.trim();if(!text)return;
+  inp.value='';
+  addMsg('ai-msgs-ch','user',text);
+  state.chAiHist.push({role:'user',content:text});
+  const t=typing('ai-msgs-ch');
+  const sys=`Sos PyBot, tutor de Python. Respondés en español, conciso y práctico.${state.currentLesson?`\nDesafío actual: "${state.currentLesson.title}" (${state.currentLesson.topic}).\nCódigo:\n\`\`\`python\n${getCode()}\n\`\`\``:''}
+Máximo 4 oraciones. Usá backticks para código.`;
+  try{
+    const reply=await callAI(sys,[...state.chAiHist.slice(-10)]);
+    t?.remove();addMsg('ai-msgs-ch','ai',reply);
+    state.chAiHist.push({role:'assistant',content:reply});
+    if(state.chAiHist.length>20)state.chAiHist=state.chAiHist.slice(-20);
+  }catch(e){t?.remove();addMsg('ai-msgs-ch','ai','Error de conexión. Intentá de nuevo.');}
+}
+async function getAiFeedback(code,lesson){
+  try{
+    const reply=await callAI('Sos PyBot, tutor de Python amigable.',[{role:'user',content:`Usuario completó "${lesson.title}":\n\`\`\`python\n${code}\n\`\`\`\nFeedback breve (2-3 oraciones): felicitalo, algo bueno y algo a explorar.`}]);
+    addMsg('ai-msgs-ch','ai','🎉 '+reply);
+  }catch(e){}
+}
+
+// Library AI
+function libQuick(t){sendLibMsg(t);}
+async function sendLibMsg(override){
+  const inp=document.getElementById('lib-ai-inp');
+  const text=override||inp.value.trim();if(!text)return;
+  inp.value='';
+  addMsg('ai-msgs-lib','user',text);
+  state.libAiHist.push({role:'user',content:text});
+  const t=typing('ai-msgs-lib');
+  const sys=`Sos PyBot, experto en Python. El usuario está estudiando la biblioteca de PythonQuest. Respondés en español, claro y con ejemplos de código cuando corresponde. Máximo 5 oraciones.`;
+  try{
+    const reply=await callAI(sys,[...state.libAiHist.slice(-10)]);
+    t?.remove();addMsg('ai-msgs-lib','ai',reply);
+    state.libAiHist.push({role:'assistant',content:reply});
+    if(state.libAiHist.length>20)state.libAiHist=state.libAiHist.slice(-20);
+  }catch(e){t?.remove();addMsg('ai-msgs-lib','ai','Error de conexión.');}
+}
+
+// ══════════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════════
+function confetti(){
+  ['#f5a623','#4ade80','#60a5fa','#f87171','#e879f9'].forEach(color=>{
+    for(let i=0;i<8;i++){
+      const c=document.createElement('div');c.className='confetti-p';
+      c.style.cssText=`left:${Math.random()*100}%;top:-10px;background:${color};border-radius:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*.5}s;animation-duration:${1+Math.random()}s`;
+      document.body.appendChild(c);setTimeout(()=>c.remove(),2000);
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════
+function startApp(){
+  document.getElementById('intro').style.display='none';
+  document.getElementById('app-header').style.display='flex';
+  document.querySelectorAll('.view').forEach(v=>v.style.display='');
+  initCM();buildSidebar();updatePts();renderLives();updateStreak();
+  let loaded=false;
+  for(const m of CURRICULUM){
+    for(const l of m.lessons){
+      if(!state.completed.includes(l.id)){loadLesson(l);loaded=true;break;}
+    }if(loaded)break;
+  }
+  if(!loaded)loadLesson(CURRICULUM[0].lessons[0]);
+  loadPy();
+}
+</script>
+</body>
+</html>
