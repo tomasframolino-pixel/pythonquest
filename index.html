@@ -6,6 +6,69 @@
 <title>PythonQuest — Aprendé Python de verdad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAXf0fMstCc6TECncVzUd2DtrfPC8z2ddI",
+    authDomain: "pythonquest-188dd.firebaseapp.com",
+    projectId: "pythonquest-188dd",
+    storageBucket: "pythonquest-188dd.firebasestorage.app",
+    messagingSenderId: "961929415500",
+    appId: "1:961929415500:web:8571f88f43825a49c51de9"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Expose to global scope for non-module code
+  window._fbAuth = auth;
+  window._fbDb = db;
+  window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, doc, setDoc, getDoc, updateDoc };
+
+  // Listen to auth state
+  onAuthStateChanged(auth, async (user) => {
+    window._fbUser = user;
+    if (user) {
+      // Load cloud data
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.completed) state.completed = d.completed;
+          if (d.points !== undefined) state.points = d.points;
+          if (d.roadmapDone) state.roadmapDone = d.roadmapDone;
+          if (d.streak !== undefined) state.streak = d.streak;
+          if (d.lastDay) state.lastDay = d.lastDay;
+          if (d.lives !== undefined) state.lives = d.lives;
+        }
+      } catch(e) { console.log('Firestore read error:', e); }
+      updateAuthUI(user);
+    } else {
+      updateAuthUI(null);
+    }
+  });
+
+  window._saveToCloud = async () => {
+    const user = window._fbUser;
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        completed: state.completed,
+        points: state.points,
+        roadmapDone: state.roadmapDone,
+        streak: state.streak,
+        lastDay: state.lastDay,
+        lives: state.lives,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch(e) { console.log('Cloud save error:', e); }
+  };
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -354,6 +417,27 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .pbar-wrap{height:2px;background:var(--border);}
 .pbar{height:2px;background:var(--amber);transition:width .4s;}
 
+/* ══ AUTH MODAL ══ */
+#auth-modal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;}
+#auth-modal.show{display:flex;}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:36px 40px;width:360px;max-width:90vw;}
+.auth-box h2{font-family:var(--sans);font-size:22px;font-weight:800;color:var(--amber);margin-bottom:4px;}
+.auth-box p{font-size:11px;color:var(--text-dim);margin-bottom:24px;}
+.auth-field{margin-bottom:14px;}
+.auth-field label{display:block;font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:5px;}
+.auth-field input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;border-radius:4px;outline:none;}
+.auth-field input:focus{border-color:var(--amber-dim);}
+.auth-err{font-size:11px;color:var(--red);margin-bottom:10px;min-height:16px;}
+.btn-auth{width:100%;padding:11px;font-family:var(--sans);font-size:13px;font-weight:700;background:var(--amber);color:#000;border:none;border-radius:4px;cursor:pointer;margin-bottom:10px;transition:background .15s;}
+.btn-auth:hover{background:#fff;}
+.auth-switch{text-align:center;font-size:11px;color:var(--text-dim);}
+.auth-switch a{color:var(--amber);cursor:pointer;text-decoration:none;}
+.auth-switch a:hover{text-decoration:underline;}
+.hud-user{font-size:10px;color:var(--text-dim);border:1px solid var(--border);border-radius:4px;padding:3px 9px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.hud-user:hover{border-color:var(--amber-dim);color:var(--amber);}
+.hud-user.logged{color:var(--green);border-color:rgba(74,222,128,0.3);}
+.cloud-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2);margin-left:4px;}
+
 @media(max-width:800px){
   .sidebar,.ai-panel,.lib-sidebar,.lib-ai{display:none;}
   #view-challenges,#view-library{flex-direction:column;}
@@ -375,6 +459,35 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
     <div class="icard"><div class="icard-icon">🤖</div><div class="icard-val">PyBot IA</div><div class="icard-lbl">Tutor siempre</div></div>
   </div>
   <button class="btn-start" onclick="startApp()">Empezar →</button>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal">
+  <div class="auth-box">
+    <h2 id="auth-title">Crear cuenta</h2>
+    <p id="auth-sub">Guardá tu progreso en la nube y accedé desde cualquier dispositivo.</p>
+    <div class="auth-field" id="auth-name-field">
+      <label>TU NOMBRE</label>
+      <input type="text" id="auth-name" placeholder="Ana García" autocomplete="name">
+    </div>
+    <div class="auth-field">
+      <label>EMAIL</label>
+      <input type="email" id="auth-email" placeholder="ana@mail.com" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label>CONTRASEÑA</label>
+      <input type="password" id="auth-pass" placeholder="mínimo 6 caracteres" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <button class="btn-auth" id="auth-submit-btn" onclick="submitAuth()">Crear cuenta</button>
+    <div class="auth-switch">
+      <span id="auth-switch-text">¿Ya tenés cuenta?</span>
+      <a onclick="toggleAuthMode()"> Iniciá sesión</a>
+    </div>
+    <div class="auth-switch" style="margin-top:8px">
+      <a onclick="skipAuth()">Continuar sin cuenta →</a>
+    </div>
+  </div>
 </div>
 
 <!-- PYODIDE BAR -->
@@ -418,6 +531,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
       <span class="lh" id="h1">❤️</span><span class="lh" id="h2">❤️</span><span class="lh" id="h3">❤️</span>
     </div>
     <div class="hud-item amber" id="pts-hud">0 pts</div>
+    <div class="hud-user" id="user-hud" onclick="openAuthModal()">👤 Entrar</div>
   </div>
 </div>
 
@@ -1258,6 +1372,8 @@ function save(){
   localStorage.setItem('pq_streak',state.streak);
   localStorage.setItem('pq_lastday',state.lastDay);
   localStorage.setItem('pq_rmdone',JSON.stringify(state.roadmapDone));
+  // Also save to cloud if logged in
+  if (window._saveToCloud) window._saveToCloud();
 }
 
 // ══════════════════════════════════════════
@@ -1733,12 +1849,99 @@ function confetti(){
 }
 
 // ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+let authMode = 'register'; // 'register' | 'login'
+
+function openAuthModal() {
+  if (window._fbUser) { showUserMenu(); return; }
+  document.getElementById('auth-modal').classList.add('show');
+}
+function skipAuth() {
+  document.getElementById('auth-modal').classList.remove('show');
+}
+function toggleAuthMode() {
+  authMode = authMode === 'register' ? 'login' : 'register';
+  const isReg = authMode === 'register';
+  document.getElementById('auth-title').textContent = isReg ? 'Crear cuenta' : 'Iniciar sesión';
+  document.getElementById('auth-sub').textContent = isReg ? 'Guardá tu progreso en la nube.' : 'Bienvenido de vuelta 👋';
+  document.getElementById('auth-name-field').style.display = isReg ? '' : 'none';
+  document.getElementById('auth-submit-btn').textContent = isReg ? 'Crear cuenta' : 'Iniciar sesión';
+  document.getElementById('auth-switch-text').textContent = isReg ? '¿Ya tenés cuenta?' : '¿No tenés cuenta?';
+  document.querySelector('.auth-switch a').textContent = isReg ? ' Iniciá sesión' : ' Registrate';
+  document.getElementById('auth-err').textContent = '';
+}
+async function submitAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const errEl = document.getElementById('auth-err');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Completá email y contraseña.'; return; }
+  const btn = document.getElementById('auth-submit-btn');
+  btn.textContent = 'Procesando...'; btn.disabled = true;
+  try {
+    const fns = window._fbFns, auth = window._fbAuth, db = window._fbDb;
+    if (authMode === 'register') {
+      const cred = await fns.createUserWithEmailAndPassword(auth, email, pass);
+      if (name) await fns.updateProfile(cred.user, { displayName: name });
+      await fns.setDoc(fns.doc(db, 'users', cred.user.uid), {
+        displayName: name || email.split('@')[0],
+        email, createdAt: new Date().toISOString(),
+        completed: state.completed, points: state.points,
+        roadmapDone: state.roadmapDone, streak: state.streak,
+        lastDay: state.lastDay, lives: state.lives
+      });
+    } else {
+      await fns.signInWithEmailAndPassword(auth, email, pass);
+    }
+    document.getElementById('auth-modal').classList.remove('show');
+  } catch(e) {
+    const msgs = {
+      'auth/email-already-in-use': 'Ese email ya está registrado. Iniciá sesión.',
+      'auth/invalid-email': 'Email inválido.',
+      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+      'auth/user-not-found': 'No existe cuenta con ese email.',
+      'auth/wrong-password': 'Contraseña incorrecta.',
+      'auth/invalid-credential': 'Email o contraseña incorrectos.',
+    };
+    errEl.textContent = msgs[e.code] || 'Error: ' + e.message;
+  }
+  btn.textContent = authMode === 'register' ? 'Crear cuenta' : 'Iniciar sesión';
+  btn.disabled = false;
+}
+function showUserMenu() {
+  const user = window._fbUser;
+  if (!user) return;
+  const name = user.displayName || user.email;
+  if (confirm(`Sesión iniciada como ${name}\n\n¿Cerrar sesión?`)) {
+    window._fbFns.signOut(window._fbAuth);
+  }
+}
+function updateAuthUI(user) {
+  const hud = document.getElementById('user-hud');
+  if (!hud) return;
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0];
+    hud.innerHTML = `✓ ${name} <span class="cloud-badge">☁ nube</span>`;
+    hud.classList.add('logged');
+    hud.onclick = showUserMenu;
+    // Refresh UI with cloud data
+    updatePts(); renderLives(); buildSidebar();
+  } else {
+    hud.innerHTML = '👤 Entrar';
+    hud.classList.remove('logged');
+    hud.onclick = openAuthModal;
+  }
+}
+
+// ══════════════════════════════════════════
 //  START
 // ══════════════════════════════════════════
 function startApp(){
   document.getElementById('intro').style.display='none';
   document.getElementById('app-header').style.display='flex';
-  document.querySelectorAll('.view').forEach(v=>v.style.display='');
+  // Fix: don't touch view display — CSS handles it via .view / .view.active
   initCM();buildSidebar();updatePts();renderLives();updateStreak();
   let loaded=false;
   for(const m of CURRICULUM){
@@ -1748,6 +1951,14 @@ function startApp(){
   }
   if(!loaded)loadLesson(CURRICULUM[0].lessons[0]);
   loadPy();
+  // Show auth modal on first visit if no user
+  const hasVisited = localStorage.getItem('pq_visited');
+  if (!hasVisited && !window._fbUser) {
+    localStorage.setItem('pq_visited','1');
+    setTimeout(() => {
+      if (!window._fbUser) document.getElementById('auth-modal').classList.add('show');
+    }, 1500);
+  }
 }
 </script>
 </body>
