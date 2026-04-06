@@ -25,16 +25,13 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Expose to global scope for non-module code
   window._fbAuth = auth;
   window._fbDb = db;
   window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, doc, setDoc, getDoc, updateDoc };
 
-  // Listen to auth state
   onAuthStateChanged(auth, async (user) => {
     window._fbUser = user;
     if (user) {
-      // Load cloud data
       try {
         const snap = await getDoc(doc(db, 'users', user.uid));
         if (snap.exists()) {
@@ -58,12 +55,9 @@
     if (!user) return;
     try {
       await setDoc(doc(db, 'users', user.uid), {
-        completed: state.completed,
-        points: state.points,
-        roadmapDone: state.roadmapDone,
-        streak: state.streak,
-        lastDay: state.lastDay,
-        lives: state.lives,
+        completed: state.completed, points: state.points,
+        roadmapDone: state.roadmapDone, streak: state.streak,
+        lastDay: state.lastDay, lives: state.lives,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     } catch(e) { console.log('Cloud save error:', e); }
@@ -101,7 +95,6 @@ html{scroll-behavior:smooth;}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow:hidden;}
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
 
-/* ══ SCROLLBAR ══ */
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -118,14 +111,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .logo-text{font-family:var(--sans);font-weight:800;font-size:17px;color:var(--amber);letter-spacing:-0.5px;}
 .logo-text em{color:var(--text-dim);font-style:normal;font-weight:400;}
 
-/* Nav tabs */
 .main-nav{display:flex;height:100%;flex:1;}
 .nav-tab{
   display:flex;align-items:center;gap:8px;
   padding:0 22px;font-family:var(--mono);font-size:12px;
   color:var(--text-dim);cursor:pointer;border:none;background:none;
-  border-right:1px solid var(--border);transition:all .2s;
-  position:relative;
+  border-right:1px solid var(--border);transition:all .2s;position:relative;
 }
 .nav-tab:hover{color:var(--text);background:rgba(255,255,255,0.03);}
 .nav-tab.active{color:var(--amber);background:var(--amber-glow);}
@@ -181,14 +172,87 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .lesson-item:not(.done)::before{content:'○';font-size:9px;opacity:0.4;}
 .lesson-item.active::before{content:'▶';font-size:8px;}
 
+/* ══ CHALLENGE MAIN ══ */
 .challenge-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.ch-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);background:var(--bg2);}
-.ch-kyu{display:inline-block;font-size:10px;padding:2px 8px;border-radius:3px;margin-bottom:6px;background:var(--amber-glow);color:var(--amber);border:1px solid var(--amber-dim);}
-.ch-title{font-family:var(--sans);font-size:19px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:6px;}
-.ch-desc{font-size:12px;color:var(--text-dim);line-height:1.8;}
-.ch-examples{margin-top:8px;background:var(--bg3);border-radius:4px;padding:9px 11px;font-size:12px;border-left:3px solid var(--amber-dim);}
 
-.editor-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+/* ══ THEORY SECTION — nueva ══ */
+.theory-section{
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  flex-shrink:0;
+  overflow-y:auto;
+  max-height:42%;
+}
+.theory-header{
+  padding:10px 18px 8px;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--bg2);z-index:2;
+}
+.theory-badge{
+  font-size:9px;letter-spacing:1.5px;padding:3px 8px;border-radius:3px;
+  background:rgba(96,165,250,0.1);color:var(--blue);border:1px solid rgba(96,165,250,0.25);
+}
+.theory-topic{font-size:11px;color:var(--text-dim);}
+.theory-body{padding:14px 18px 16px;display:flex;gap:20px;}
+
+.theory-col-main{flex:1;min-width:0;}
+.theory-concept-title{
+  font-family:var(--sans);font-size:15px;font-weight:800;
+  color:var(--text);margin-bottom:6px;line-height:1.3;
+}
+.theory-why{
+  font-size:11px;color:var(--text-dim);line-height:1.8;margin-bottom:10px;
+}
+.theory-why strong{color:var(--amber);}
+
+.theory-syntax{
+  background:#060809;border:1px solid var(--border);border-radius:5px;
+  padding:10px 13px;font-size:11px;color:var(--text);line-height:1.9;
+  border-left:3px solid var(--amber-dim);margin-bottom:10px;
+  font-family:var(--mono);
+}
+.theory-syntax .sk{color:#c792ea;}
+.theory-syntax .sf{color:#82aaff;}
+.theory-syntax .ss{color:#c3e88d;}
+.theory-syntax .sn{color:#f78c6c;}
+.theory-syntax .sc{color:#546e7a;font-style:italic;}
+
+.theory-col-side{width:220px;min-width:220px;display:flex;flex-direction:column;gap:8px;}
+
+.theory-realworld{
+  background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.18);
+  border-radius:5px;padding:10px 12px;
+}
+.theory-rw-label{font-size:9px;letter-spacing:1.5px;color:var(--green);margin-bottom:5px;}
+.theory-rw-items{display:flex;flex-direction:column;gap:4px;}
+.theory-rw-item{font-size:11px;color:var(--text-dim);line-height:1.6;display:flex;gap:6px;}
+.theory-rw-item::before{content:'→';color:var(--green);flex-shrink:0;}
+
+.theory-tip{
+  background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.18);
+  border-radius:5px;padding:10px 12px;
+}
+.theory-tip-label{font-size:9px;letter-spacing:1.5px;color:var(--amber);margin-bottom:5px;}
+.theory-tip-text{font-size:11px;color:var(--text-dim);line-height:1.7;}
+
+.theory-divider{
+  padding:7px 18px;
+  background:linear-gradient(90deg, rgba(245,166,35,0.08) 0%, transparent 100%);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.theory-divider-line{flex:1;height:1px;background:var(--border);}
+.theory-divider-text{font-size:10px;color:var(--amber);letter-spacing:1px;white-space:nowrap;}
+
+/* ══ CH HEADER (challenge part) ══ */
+.ch-header{padding:12px 18px 10px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.ch-kyu{display:inline-block;font-size:10px;padding:2px 8px;border-radius:3px;margin-bottom:5px;background:var(--amber-glow);color:var(--amber);border:1px solid var(--amber-dim);}
+.ch-title{font-family:var(--sans);font-size:16px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:5px;}
+.ch-desc{font-size:12px;color:var(--text-dim);line-height:1.8;}
+.ch-examples{margin-top:6px;background:var(--bg3);border-radius:4px;padding:8px 11px;font-size:12px;border-left:3px solid var(--amber-dim);}
+
+.editor-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 .editor-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--bg3);border-bottom:1px solid var(--border);}
 .ed-file{font-size:10px;color:var(--text-dim);}
 .ed-badge{font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25);margin-left:6px;}
@@ -202,12 +266,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .btn-submit{background:var(--amber);border-color:var(--amber);color:#000;font-weight:bold;}
 .btn-submit:hover{background:#d4891a;}
 
-.cm-host{flex:1;overflow:hidden;position:relative;}
+.cm-host{flex:1;overflow:hidden;position:relative;min-height:0;}
 .CodeMirror{height:100% !important;font-family:var(--mono) !important;font-size:13px !important;line-height:1.7 !important;background:#080a0b !important;}
 .CodeMirror-cursor{border-left-color:var(--amber) !important;}
 .CodeMirror-selected{background:rgba(245,166,35,0.18) !important;}
 
-.out-panel{border-top:1px solid var(--border);background:#060809;min-height:120px;max-height:190px;overflow-y:auto;flex-shrink:0;}
+.out-panel{border-top:1px solid var(--border);background:#060809;min-height:100px;max-height:160px;overflow-y:auto;flex-shrink:0;}
 .out-bar{display:flex;align-items:center;gap:7px;padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg3);}
 .out-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);}
 .out-dot.running{background:var(--amber);animation:blink .6s infinite;}
@@ -243,33 +307,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .btn-send{background:var(--amber);border:none;color:#000;font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:4px;cursor:pointer;}
 .btn-send:hover{background:#d4891a;}
 
-/* ══════════════════════════════════
-   VIEW 2 — BIBLIOTECA
-══════════════════════════════════ */
+/* ══ VIEW 2 — BIBLIOTECA ══ */
 #view-library{flex-direction:row;}
-
-.lib-sidebar{
-  width:240px;min-width:240px;border-right:1px solid var(--border);
-  background:var(--bg2);overflow-y:auto;
-}
+.lib-sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);background:var(--bg2);overflow-y:auto;}
 .lib-sidebar-hdr{padding:14px 16px 10px;font-size:9px;color:var(--text-dim);letter-spacing:2px;border-bottom:1px solid var(--border);}
 .lib-cat{border-bottom:1px solid var(--border);}
-.lib-cat-title{
-  padding:9px 14px;font-size:11px;color:var(--text);
-  cursor:pointer;display:flex;align-items:center;gap:8px;
-  transition:background .15s;user-select:none;
-}
+.lib-cat-title{padding:9px 14px;font-size:11px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;user-select:none;}
 .lib-cat-title:hover{background:var(--bg3);}
 .lib-cat-title .cat-icon{font-size:13px;}
 .lib-topic-list{display:none;}
 .lib-cat.open .lib-topic-list{display:block;}
-.lib-topic{
-  padding:6px 14px 6px 30px;font-size:11px;color:var(--text-dim);
-  cursor:pointer;transition:all .15s;border-left:2px solid transparent;
-}
+.lib-topic{padding:6px 14px 6px 30px;font-size:11px;color:var(--text-dim);cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
 .lib-topic:hover{color:var(--text);background:rgba(255,255,255,0.02);}
 .lib-topic.active{color:var(--amber);border-left-color:var(--amber);background:var(--amber-glow);}
-
 .lib-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .lib-content{flex:1;overflow-y:auto;padding:28px 36px;}
 .lib-content h1{font-family:var(--sans);font-size:26px;font-weight:800;color:var(--amber);margin-bottom:8px;}
@@ -289,12 +339,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .code-block .c-cm{color:#546e7a;font-style:italic;}
 .code-block .c-cls{color:var(--teal);}
 .tip-box{background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.2);border-radius:6px;padding:14px 16px;margin:14px 0;font-size:12px;color:var(--blue);line-height:1.8;}
-.tip-box::before{content:'💡 ';font-size:13px;}
+.tip-box::before{content:'💡 ';}
 .warn-box{background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.2);border-radius:6px;padding:14px 16px;margin:14px 0;font-size:12px;color:var(--amber);line-height:1.8;}
 .warn-box::before{content:'⚠ ';}
-.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
-.tag{font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);}
-
 .lib-ai{width:280px;min-width:280px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);}
 .lib-ai-hdr{padding:10px 14px;border-bottom:1px solid var(--border);}
 .lib-ai-title{font-size:11px;color:var(--text);display:flex;align-items:center;gap:7px;}
@@ -306,21 +353,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .lib-ai-inp:focus{border-color:var(--amber-dim);}
 .lib-ai-inp::placeholder{color:var(--text-dim);}
 
-/* ══════════════════════════════════
-   VIEW 3 — RUTA LABORAL
-══════════════════════════════════ */
+/* ══ VIEW 3 — ROADMAP ══ */
 #view-roadmap{flex-direction:column;overflow-y:auto;}
 .roadmap-wrap{padding:36px 48px;max-width:1100px;margin:0 auto;width:100%;}
 .roadmap-hero{text-align:center;margin-bottom:48px;}
 .roadmap-hero h1{font-family:var(--sans);font-size:36px;font-weight:800;color:var(--amber);margin-bottom:10px;}
 .roadmap-hero p{font-size:13px;color:var(--text-dim);line-height:1.9;max-width:600px;margin:0 auto;}
-
 .phase-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
-.phase-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
-  padding:22px;position:relative;overflow:hidden;
-  transition:border-color .2s,transform .2s;
-}
+.phase-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:22px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
 .phase-card:hover{border-color:var(--amber-dim);transform:translateY(-2px);}
 .phase-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
 .phase-card.p1::before{background:var(--blue);}
@@ -337,16 +377,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .phase-topic{display:flex;align-items:flex-start;gap:9px;font-size:11px;color:var(--text-dim);line-height:1.7;}
 .phase-topic-dot{width:5px;height:5px;border-radius:50%;background:var(--text-dim);margin-top:6px;flex-shrink:0;}
 .phase-topic strong{color:var(--text);display:block;margin-bottom:2px;}
-.phase-check{
-  position:absolute;top:16px;right:16px;
-  width:24px;height:24px;border-radius:50%;
-  border:1px solid var(--border);background:transparent;
-  cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;
-  color:var(--text-dim);transition:all .2s;
-}
+.phase-check{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);transition:all .2s;}
 .phase-check:hover{border-color:var(--green);color:var(--green);}
 .phase-check.done{background:var(--green);border-color:var(--green);color:#000;}
-
 .resources-section{margin-top:36px;}
 .res-title{font-family:var(--sans);font-size:20px;font-weight:800;color:var(--text);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
@@ -358,7 +391,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .res-card-link{display:inline-block;margin-top:10px;font-size:10px;color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber-dim);}
 .res-card-link:hover{color:#fff;}
 .res-tag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid var(--amber-dim);margin-top:8px;}
-
 .projects-section{margin-top:36px;margin-bottom:48px;}
 .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
 .proj-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:18px;border-top:3px solid var(--purple);}
@@ -368,7 +400,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .proj-tech{display:flex;flex-wrap:wrap;gap:4px;}
 .proj-tech span{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--text-dim);border:1px solid var(--border);}
 
-/* ══ GLOBAL OVERLAYS ══ */
+/* ══ OVERLAYS ══ */
 #life-flash{position:fixed;inset:0;z-index:1000;pointer-events:none;background:rgba(248,113,113,0.1);opacity:0;transition:opacity .3s;}
 #life-flash.show{opacity:1;}
 #gameover{position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;}
@@ -377,20 +409,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .go-title{font-family:var(--sans);font-size:30px;font-weight:800;color:var(--red);margin-bottom:10px;}
 .go-pts{font-size:32px;color:var(--amber);font-family:var(--sans);font-weight:800;margin:14px 0 4px;}
 
-#pyodide-bar{
-  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-  background:var(--bg2);border:1px solid var(--border);border-radius:5px;
-  padding:8px 18px;font-size:11px;color:var(--text-dim);z-index:500;
-  display:flex;align-items:center;gap:9px;transition:opacity .6s;
-}
+#pyodide-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:8px 18px;font-size:11px;color:var(--text-dim);z-index:500;display:flex;align-items:center;gap:9px;transition:opacity .6s;}
 #pyodide-bar.hidden{opacity:0;pointer-events:none;}
 .py-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:blink .6s infinite;}
 
 /* ══ INTRO ══ */
-#intro{
-  position:fixed;inset:0;z-index:300;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-}
+#intro{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
 .intro-logo{font-size:56px;animation:float 3s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .intro-h1{font-family:var(--sans);font-size:46px;font-weight:800;color:var(--amber);letter-spacing:-2px;}
@@ -405,19 +429,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .btn-start{font-family:var(--sans);font-size:15px;font-weight:700;background:var(--amber);color:#000;border:none;padding:13px 38px;border-radius:4px;cursor:pointer;transition:all .2s;margin-top:6px;}
 .btn-start:hover{background:#fff;transform:scale(1.03);}
 
-/* ══ ANIMATIONS ══ */
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.fadein{animation:fadeIn .22s ease forwards;}
-@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
-.shake{animation:shake .35s ease;}
-.confetti-p{position:fixed;width:7px;height:7px;opacity:0;pointer-events:none;z-index:400;animation:cf 1.4s ease-in forwards;}
-@keyframes cf{0%{opacity:1;transform:translateY(-20px) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
-
-.pbar-wrap{height:2px;background:var(--border);}
-.pbar{height:2px;background:var(--amber);transition:width .4s;}
-
-/* ══ AUTH MODAL ══ */
+/* ══ AUTH ══ */
 #auth-modal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;}
 #auth-modal.show{display:flex;}
 .auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:36px 40px;width:360px;max-width:90vw;}
@@ -438,23 +450,34 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 .hud-user.logged{color:var(--green);border-color:rgba(74,222,128,0.3);}
 .cloud-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2);margin-left:4px;}
 
+.pbar-wrap{height:2px;background:var(--border);}
+.pbar{height:2px;background:var(--amber);transition:width .4s;}
+
+/* ══ ANIMATIONS ══ */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadeIn .22s ease forwards;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.shake{animation:shake .35s ease;}
+.confetti-p{position:fixed;width:7px;height:7px;opacity:0;pointer-events:none;z-index:400;animation:cf 1.4s ease-in forwards;}
+@keyframes cf{0%{opacity:1;transform:translateY(-20px) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+
 @media(max-width:800px){
-  .sidebar,.ai-panel,.lib-sidebar,.lib-ai{display:none;}
+  .sidebar,.ai-panel,.lib-sidebar,.lib-ai,.theory-col-side{display:none;}
   #view-challenges,#view-library{flex-direction:column;}
 }
 </style>
 </head>
 <body>
-
 <!-- INTRO -->
 <div id="intro">
   <div class="intro-logo">🐍</div>
   <div class="intro-h1">PythonQuest</div>
-  <div class="intro-v">v3.0 · MULTIVISTA</div>
-  <p class="intro-sub">Aprendé Python <span>de verdad</span> — desafíos interactivos, biblioteca completa y una ruta de aprendizaje <span>orientada al trabajo real</span>.</p>
+  <div class="intro-v">v5.0 · TEORÍA + PRÁCTICA</div>
+  <p class="intro-sub">Aprendé Python <span>de verdad</span> — entendés el concepto, lo ves en acción, después lo escribís vos.</p>
   <div class="intro-cards">
+    <div class="icard"><div class="icard-icon">📖</div><div class="icard-val">Teoría</div><div class="icard-lbl">Antes de codear</div></div>
     <div class="icard"><div class="icard-icon">⚔️</div><div class="icard-val">Desafíos</div><div class="icard-lbl">Python real</div></div>
-    <div class="icard"><div class="icard-icon">📚</div><div class="icard-val">Biblioteca</div><div class="icard-lbl">Teoría completa</div></div>
     <div class="icard"><div class="icard-icon">🗺️</div><div class="icard-val">Roadmap</div><div class="icard-lbl">2 años a trabajo</div></div>
     <div class="icard"><div class="icard-icon">🤖</div><div class="icard-val">PyBot IA</div><div class="icard-lbl">Tutor siempre</div></div>
   </div>
@@ -542,13 +565,48 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
     <div class="pbar-wrap"><div class="pbar" id="global-pbar" style="width:0%"></div></div>
     <div id="module-list"></div>
   </aside>
+
   <main class="challenge-main">
+    <!-- TEORÍA — siempre visible arriba -->
+    <div class="theory-section" id="theory-section">
+      <div class="theory-header">
+        <span class="theory-badge" id="theory-badge">CONCEPTO</span>
+        <span class="theory-topic" id="theory-topic">—</span>
+      </div>
+      <div class="theory-body">
+        <div class="theory-col-main">
+          <div class="theory-concept-title" id="theory-title">—</div>
+          <div class="theory-why" id="theory-why">—</div>
+          <div class="theory-syntax" id="theory-syntax"></div>
+        </div>
+        <div class="theory-col-side">
+          <div class="theory-realworld" id="theory-realworld">
+            <div class="theory-rw-label">EN LA VIDA REAL</div>
+            <div class="theory-rw-items" id="theory-rw-items"></div>
+          </div>
+          <div class="theory-tip" id="theory-tip-box">
+            <div class="theory-tip-label">💡 A TENER EN CUENTA</div>
+            <div class="theory-tip-text" id="theory-tip-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVISOR teoría → desafío -->
+    <div class="theory-divider">
+      <div class="theory-divider-line"></div>
+      <div class="theory-divider-text">▼ AHORA LO HACÉS VOS</div>
+      <div class="theory-divider-line"></div>
+    </div>
+
+    <!-- DESAFÍO -->
     <div class="ch-header">
       <div class="ch-kyu" id="ch-kyu">—</div>
       <div class="ch-title" id="ch-title">Cargando...</div>
       <div class="ch-desc" id="ch-desc"></div>
       <div class="ch-examples" id="ch-examples" style="display:none"></div>
     </div>
+
     <div class="editor-wrap">
       <div class="editor-bar">
         <span class="ed-file" id="ed-file">solution.py</span>
@@ -572,19 +630,20 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
       </div>
     </div>
   </main>
+
   <aside class="ai-panel">
     <div class="ai-hdr">
       <div class="ai-dot-live"></div>
       <span class="ai-title">PyBot — Tutor IA</span>
     </div>
     <div class="ai-msgs" id="ai-msgs-ch">
-      <div class="msg msg-ai fadein">¡Hola! Soy <strong>PyBot</strong> 🐍<br><br>Puedo explicarte conceptos, revisar tu código y darte pistas. ¿Arrancamos?</div>
+      <div class="msg msg-ai fadein">¡Hola! Soy <strong>PyBot</strong> 🐍<br><br>Leé la teoría de arriba, entendé el concepto, y después encarás el desafío. ¡Cualquier duda me preguntás!</div>
     </div>
     <div class="quick-btns">
-      <button class="qbtn" onclick="chQuick('¿Podés explicarme el desafío actual?')">¿Me explicás el desafío?</button>
+      <button class="qbtn" onclick="chQuick('¿Me explicás el concepto de la teoría con otro ejemplo?')">Otro ejemplo del concepto</button>
       <button class="qbtn" onclick="chQuick('¿Qué está mal en mi código?')">Revisá mi código</button>
+      <button class="qbtn" onclick="chQuick('¿Para qué sirve esto en un trabajo real?')">¿Para qué sirve en el trabajo?</button>
       <button class="qbtn" onclick="chQuick('Dame un ejercicio extra sobre este tema')">Ejercicio extra</button>
-      <button class="qbtn" onclick="chQuick('¿Cómo funciona Pyodide?')">¿Qué es Pyodide?</button>
     </div>
     <div class="ai-inp-row">
       <input class="ai-inp" id="ch-ai-inp" placeholder="Preguntale a PyBot..." onkeydown="if(event.key==='Enter')sendChMsg()">
@@ -600,9 +659,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
     <div id="lib-nav"></div>
   </aside>
   <main class="lib-main">
-    <div class="lib-content" id="lib-content">
-      <!-- content injected by JS -->
-    </div>
+    <div class="lib-content" id="lib-content"></div>
   </main>
   <aside class="lib-ai">
     <div class="lib-ai-hdr">
@@ -627,25 +684,46 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 
 <!-- VIEW: ROADMAP -->
 <div class="view" id="view-roadmap">
-  <div class="roadmap-wrap" id="roadmap-content">
-    <!-- injected by JS -->
-  </div>
+  <div class="roadmap-wrap" id="roadmap-content"></div>
 </div>
-
 <script>
 // ══════════════════════════════════════════
-//  CURRICULUM
+//  CURRICULUM — con THEORY para cada lección
 // ══════════════════════════════════════════
 const CURRICULUM = [
   { id:'basics', icon:'📟', title:'Lo básico',
     lessons:[
-      { id:'print', title:'print() — primer línea', kyu:'Nv1', pts:10, topic:'print',
+      { id:'print', title:'print() — tu primera línea', kyu:'Nv1', pts:10, topic:'print()',
+        theory:{
+          title:'¿Qué es print() y para qué sirve?',
+          why:'<strong>print()</strong> es la forma de mostrar información en pantalla. En el trabajo lo usás todo el tiempo para ver qué está pasando en tu programa — si los datos llegaron bien, si un cálculo salió correcto, o para mostrarle resultados al usuario.',
+          syntax:`<span class="sk">print</span>(<span class="ss">"texto"</span>)          <span class="sc"># imprime texto</span>
+<span class="sk">print</span>(<span class="sn">42</span>)               <span class="sc"># imprime un número</span>
+<span class="sk">print</span>(<span class="ss">"hola"</span>, <span class="ss">"mundo"</span>)   <span class="sc"># imprime varios valores</span>
+<span class="sk">print</span>()                  <span class="sc"># línea en blanco</span>`,
+          realworld:['Mostrar el resultado de un cálculo al usuario','Ver el contenido de una variable mientras depurás','Imprimir reportes o mensajes de estado en un sistema'],
+          tip:'print() no guarda el resultado en ningún lado — solo lo muestra. Para guardar valores usarás variables, que viene en el siguiente ejercicio.'
+        },
         task:'Imprimí exactamente: <strong>¡Hola, Python!</strong>',
         examples:[{input:'print("Hola")',output:'Hola'}],
         starter:'# Tu primer programa\nprint(...)',
         tests:[{desc:'Imprime ¡Hola, Python!',fn:(o)=>o.includes('Hola, Python')||o.includes('¡Hola, Python!')}]
       },
       { id:'variables', title:'Variables — guardar datos', kyu:'Nv1', pts:15, topic:'variables',
+        theory:{
+          title:'¿Qué es una variable?',
+          why:'Una variable es una <strong>caja con nombre</strong> donde guardás información para usarla después. Sin variables no podés guardar nada — cada cálculo o dato desaparecería inmediatamente. En el trabajo, las variables guardan nombres de usuarios, precios, resultados de operaciones, respuestas de APIs, y todo lo que tu programa necesita recordar.',
+          syntax:`nombre = <span class="ss">"Ana"</span>     <span class="sc"># string (texto)</span>
+edad = <span class="sn">25</span>         <span class="sc"># int (número entero)</span>
+precio = <span class="sn">9.99</span>    <span class="sc"># float (decimal)</span>
+activo = <span class="sk">True</span>    <span class="sc"># bool (verdadero/falso)</span>
+
+<span class="sc"># El nombre va a la izquierda, el valor a la derecha</span>
+x = <span class="sn">10</span>
+x = <span class="sn">20</span>  <span class="sc"># podés cambiarle el valor</span>`,
+          realworld:['nombre_usuario = "Juan" — guardar datos del login','total = precio * cantidad — guardar resultados de cálculos','respuesta = llamar_api() — guardar lo que devuelve una función'],
+          tip:'Los nombres de variables van en minúsculas con guiones bajos: nombre_completo, no NombreCompleto. Es una convención de Python que todos los desarrolladores siguen.'
+        },
         task:'Creá <strong>nombre</strong> (string) y <strong>edad</strong> (número). Imprimí ambas.',
         examples:[{input:'x = 5\nprint(x)',output:'5'}],
         starter:'nombre = ...\nedad = ...\nprint(nombre)\nprint(edad)',
@@ -655,13 +733,44 @@ const CURRICULUM = [
         ]
       },
       { id:'fstring', title:'f-strings — texto dinámico', kyu:'Nv1', pts:20, topic:'f-strings',
+        theory:{
+          title:'f-strings: mezclar texto y variables',
+          why:'Los f-strings te permiten <strong>meter variables dentro de un texto</strong> sin complicaciones. Es la forma moderna y recomendada de construir mensajes en Python. Los vas a usar en absolutamente todo: mensajes de error, logs, respuestas de APIs, emails automáticos, reportes.',
+          syntax:`nombre = <span class="ss">"María"</span>
+edad = <span class="sn">28</span>
+
+<span class="sc"># Ponés una f antes de las comillas y usás {} para las variables</span>
+<span class="sk">print</span>(<span class="sf">f</span><span class="ss">"Hola, {nombre}!"</span>)
+<span class="sk">print</span>(<span class="sf">f</span><span class="ss">"Tenés {edad} años"</span>)
+<span class="sk">print</span>(<span class="sf">f</span><span class="ss">"En 10 años tendrás {edad + 10}"</span>)  <span class="sc"># podés hacer cálculos adentro</span>`,
+          realworld:['f"Bienvenido, {usuario.nombre}!" — mensajes personalizados','f"Error en línea {linea}: {mensaje}" — mensajes de error','f"Total: ${precio * cantidad:.2f}" — formatear números'],
+          tip:'Siempre preferí f-strings sobre concatenar strings con +. Compará: f"Hola {nombre}" vs "Hola " + nombre + " !" — el f-string es mucho más claro.'
+        },
         task:'Usá f-string para imprimir: <strong>Me llamo [nombre] y tengo [edad] años.</strong>',
         examples:[{input:'x="Ana"\nprint(f"Hola {x}")',output:'Hola Ana'}],
         starter:'nombre = "Tu nombre"\nedad = 20\nprint(f"...")',
         tests:[{desc:'Usa f-string',fn:(o,c)=>c.includes('f"')||c.includes("f'")}]
       },
-      { id:'types', title:'Tipos — int, float, str, bool', kyu:'Nv1', pts:20, topic:'tipos',
-        task:'Creá una variable de cada tipo: <strong>entero, decimal, texto, booleano</strong>. Imprimí cada una con <code>type()</code>.',
+      { id:'types', title:'Tipos de datos', kyu:'Nv1', pts:20, topic:'tipos de datos',
+        theory:{
+          title:'¿Por qué existen distintos tipos de datos?',
+          why:'Python necesita saber <strong>qué tipo de dato es</strong> cada variable para saber qué puede hacer con ella. No es lo mismo sumar dos números que concatenar dos textos. Los tipos principales son: <strong>int</strong> (enteros), <strong>float</strong> (decimales), <strong>str</strong> (texto), <strong>bool</strong> (verdadero/falso). Entender tipos es fundamental — muchos bugs en el trabajo vienen de confundir tipos.',
+          syntax:`entero = <span class="sn">42</span>          <span class="sc"># int</span>
+decimal = <span class="sn">3.14</span>       <span class="sc"># float</span>
+texto = <span class="ss">"Python"</span>     <span class="sc"># str</span>
+activo = <span class="sk">True</span>        <span class="sc"># bool</span>
+
+<span class="sc"># type() te dice el tipo de cualquier variable</span>
+<span class="sk">print</span>(<span class="sf">type</span>(entero))   <span class="sc"># &lt;class 'int'&gt;</span>
+<span class="sk">print</span>(<span class="sf">type</span>(texto))    <span class="sc"># &lt;class 'str'&gt;</span>
+
+<span class="sc"># Convertir entre tipos</span>
+<span class="sf">int</span>(<span class="ss">"42"</span>)   <span class="sc"># → 42 (string a int)</span>
+<span class="sf">str</span>(<span class="sn">42</span>)     <span class="sc"># → "42" (int a string)</span>`,
+          realworld:['"42" y 42 son distintos — una API puede devolverte números como texto y hay que convertirlos','bool se usa para flags: usuario_activo = True, tiene_permiso = False','float para dinero, coordenadas GPS, porcentajes'],
+          tip:'Un error muy común: "5" + 5 da error porque uno es str y el otro int. Python no mezcla tipos automáticamente — tenés que convertir explícitamente.'
+        },
+        task:'Creá una variable de cada tipo: entero, decimal, texto, booleano. Imprimí cada una con <code>type()</code>.',
         examples:[{input:'x=42\nprint(type(x))',output:"<class 'int'>"}],
         starter:'entero = 10\ndecimal = 3.14\ntexto = "Python"\nbooleano = True\n\nprint(type(entero))\nprint(type(decimal))\nprint(type(texto))\nprint(type(booleano))',
         tests:[{desc:'Usa type()',fn:(o,c)=>c.includes('type(')}]
@@ -671,12 +780,44 @@ const CURRICULUM = [
   { id:'logic', icon:'🔀', title:'Lógica',
     lessons:[
       { id:'if', title:'if / else — decisiones', kyu:'Nv2', pts:25, topic:'condicionales',
+        theory:{
+          title:'if/else: hacer que tu programa tome decisiones',
+          why:'El <strong>if/else</strong> es la base de toda lógica en programación. Sin él, tu programa haría siempre lo mismo sin importar la situación. Con él podés controlar el flujo: "si el usuario está logueado, mostrar el dashboard; si no, redirigir al login". Es literal en absolutamente todo el código que vas a escribir.',
+          syntax:`<span class="sc"># Estructura básica</span>
+<span class="sk">if</span> condicion:
+    <span class="sc"># se ejecuta si condicion es True</span>
+<span class="sk">else</span>:
+    <span class="sc"># se ejecuta si condicion es False</span>
+
+<span class="sc"># Operadores de comparación</span>
+x > <span class="sn">10</span>    <span class="sc"># mayor que</span>
+x < <span class="sn">10</span>    <span class="sc"># menor que</span>
+x == <span class="sn">10</span>   <span class="sc"># igual a (¡dos signos igual!)</span>
+x != <span class="sn">10</span>   <span class="sc"># distinto de</span>
+x >= <span class="sn">10</span>   <span class="sc"># mayor o igual</span>`,
+          realworld:['if usuario.tiene_permiso: mostrar_datos()','if saldo >= precio: procesar_pago()','if respuesta.status == 200: usar_datos()'],
+          tip:'La indentación (4 espacios) es obligatoria en Python — define qué código está dentro del if. Si no indentás, obtenés un error de sintaxis.'
+        },
         task:'Creá <strong>temperatura = 35</strong>. Si > 30 imprimí "Hace calor", si no "Está fresco".',
         examples:[{input:'if 5>3:\n    print("sí")',output:'sí'}],
         starter:'temperatura = 35\n\nif temperatura > 30:\n    print("Hace calor")\nelse:\n    print("Está fresco")',
         tests:[{desc:'Usa if/else',fn:(o,c)=>c.includes('if')&&c.includes('else')}]
       },
       { id:'elif', title:'elif — múltiples caminos', kyu:'Nv2', pts:30, topic:'elif',
+        theory:{
+          title:'elif: cuando hay más de dos opciones',
+          why:'<strong>elif</strong> (else if) te permite manejar <strong>múltiples casos</strong> en secuencia. En lugar de anidar if dentro de if (que se vuelve ilegible), usás elif para decirle a Python "si no fue lo primero, fijate si es esto otro". Es el equivalente a "de lo contrario, si...".',
+          syntax:`<span class="sk">if</span> condicion1:
+    <span class="sc"># ejecuta esto</span>
+<span class="sk">elif</span> condicion2:
+    <span class="sc"># si no fue condicion1, fijate esta</span>
+<span class="sk">elif</span> condicion3:
+    <span class="sc"># podés tener cuantos elif quieras</span>
+<span class="sk">else</span>:
+    <span class="sc"># si ninguna condición anterior fue True</span>`,
+          realworld:['Categorizar usuarios: admin / moderador / usuario / invitado','Clasificar edades: niño / adolescente / adulto / adulto mayor','HTTP status codes: 200 OK / 404 Not Found / 500 Server Error'],
+          tip:'Python evalúa los elif en orden — apenas encuentra uno que sea True, ejecuta ese bloque y saltea el resto. Ordená de más específico a más general.'
+        },
         task:'Nota < 4 → "Reprobado", 4-6 → "Regular", > 6 → "Excelente". Usá <code>if/elif/else</code>.',
         examples:[{input:'x=5\nif x<4:\n    print("bajo")\nelif x<7:\n    print("medio")\nelse:\n    print("alto")',output:'medio'}],
         starter:'nota = 5\n\nif nota < 4:\n    print("Reprobado")\nelif nota <= 6:\n    print("Regular")\nelse:\n    print("Excelente")',
@@ -686,19 +827,69 @@ const CURRICULUM = [
   },
   { id:'loops', icon:'🔁', title:'Loops',
     lessons:[
-      { id:'for', title:'for — repetir con range', kyu:'Nv2', pts:30, topic:'for',
+      { id:'for', title:'for — repetir con range', kyu:'Nv2', pts:30, topic:'for loop',
+        theory:{
+          title:'for: ejecutar código repetidas veces',
+          why:'El <strong>for loop</strong> te permite ejecutar un bloque de código múltiples veces sin copiar y pegar. Si necesitás hacer algo 1000 veces, escribís el loop una vez. En el trabajo lo usás para procesar listas de usuarios, iterar sobre resultados de base de datos, generar reportes, enviar emails en masa.',
+          syntax:`<span class="sc"># range(n) genera números de 0 a n-1</span>
+<span class="sk">for</span> i <span class="sk">in</span> <span class="sf">range</span>(<span class="sn">5</span>):
+    <span class="sk">print</span>(i)        <span class="sc"># 0, 1, 2, 3, 4</span>
+
+<span class="sc"># range(inicio, fin) — desde inicio hasta fin-1</span>
+<span class="sk">for</span> i <span class="sk">in</span> <span class="sf">range</span>(<span class="sn">1</span>, <span class="sn">11</span>):
+    <span class="sk">print</span>(i)        <span class="sc"># 1, 2, 3, ... 10</span>
+
+<span class="sc"># Iterar sobre una lista directamente</span>
+<span class="sk">for</span> nombre <span class="sk">in</span> [<span class="ss">"Ana"</span>, <span class="ss">"Luis"</span>, <span class="ss">"Pedro"</span>]:
+    <span class="sk">print</span>(nombre)`,
+          realworld:['for usuario in lista_usuarios: enviar_email(usuario)','for fila in resultados_db: procesar(fila)','for i in range(3): reintentar_conexion()'],
+          tip:'La variable del for (i, nombre, etc.) toma el valor de cada elemento en cada vuelta. Podés nombrarla como quieras — si iterás sobre frutas, llamala fruta.'
+        },
         task:'Imprimí los números del 1 al 10 con un <code>for</code>.',
         examples:[{input:'for i in range(3):\n    print(i)',output:'0\n1\n2'}],
         starter:'for i in range(1, 11):\n    print(i)',
         tests:[{desc:'Imprime 1 al 10',fn:(o)=>o.includes('1')&&o.includes('10')}]
       },
-      { id:'while', title:'while — condición', kyu:'Nv2', pts:30, topic:'while',
+      { id:'while', title:'while — repetir con condición', kyu:'Nv2', pts:30, topic:'while loop',
+        theory:{
+          title:'while: repetir mientras algo sea verdad',
+          why:'<strong>while</strong> repite un bloque <strong>mientras una condición sea True</strong>. A diferencia del for que sabe cuántas veces iterar, el while sigue hasta que algo cambie. Lo usás cuando no sabés de antemano cuántas repeticiones necesitás: esperar a que el usuario ingrese un dato válido, reintentar una conexión hasta que funcione, procesar items hasta que se acabe la cola.',
+          syntax:`contador = <span class="sn">0</span>
+<span class="sk">while</span> contador < <span class="sn">5</span>:
+    <span class="sk">print</span>(contador)
+    contador += <span class="sn">1</span>     <span class="sc"># ¡IMPORTANTE! Siempre avanzar</span>
+
+<span class="sc"># Peligro: loop infinito si no avanzás</span>
+<span class="sc"># while True:         ← cuidado con esto</span>
+<span class="sc">#     if condicion: break  ← necesitás un break</span>`,
+          realworld:['while not conexion_exitosa: intentar_reconectar()','while hay_items_en_cola: procesar_siguiente()','while usuario_input != "salir": pedir_comando()'],
+          tip:'Siempre asegurate de que la condición del while eventualmente se vuelva False — sino tenés un loop infinito que congela el programa. La línea que avanza (contador += 1) es crítica.'
+        },
         task:'Usá <code>while</code> para contar del 1 al 5.',
         examples:[{input:'x=0\nwhile x<3:\n    print(x)\n    x+=1',output:'0\n1\n2'}],
         starter:'contador = 1\nwhile contador <= 5:\n    print(contador)\n    contador += 1',
         tests:[{desc:'Usa while',fn:(o,c)=>c.includes('while')},{desc:'Imprime 1 al 5',fn:(o)=>o.includes('5')}]
       },
-      { id:'for-list', title:'for sobre listas', kyu:'Nv2', pts:35, topic:'for',
+      { id:'for-list', title:'for sobre listas', kyu:'Nv2', pts:35, topic:'iterar listas',
+        theory:{
+          title:'Iterar sobre listas: el uso más común del for',
+          why:'Iterar listas con for es <strong>pan de cada día</strong> en Python. Tenés una lista de usuarios, productos, registros, o mensajes — y querés hacer algo con cada uno. Es el patrón más repetido en cualquier aplicación real. No necesitás índices, simplemente decís "para cada cosa en la lista, hacer esto".',
+          syntax:`frutas = [<span class="ss">"manzana"</span>, <span class="ss">"banana"</span>, <span class="ss">"uva"</span>]
+
+<span class="sc"># Iterar directamente</span>
+<span class="sk">for</span> fruta <span class="sk">in</span> frutas:
+    <span class="sk">print</span>(fruta)
+
+<span class="sc"># Con índice si lo necesitás</span>
+<span class="sk">for</span> i, fruta <span class="sk">in</span> <span class="sf">enumerate</span>(frutas):
+    <span class="sk">print</span>(<span class="sf">f</span><span class="ss">"{i}: {fruta}"</span>)
+
+<span class="sc"># Métodos de string útiles</span>
+<span class="ss">"hola"</span>.upper()   <span class="sc"># → "HOLA"</span>
+<span class="ss">"HOLA"</span>.lower()   <span class="sc"># → "hola"</span>`,
+          realworld:['for producto in carrito: calcular_total()','for email in lista_emails: enviar_notificacion(email)','for registro in resultados: guardar_en_bd(registro)'],
+          tip:'enumerate() te da el índice y el valor al mismo tiempo — muy útil cuando necesitás saber en qué posición estás dentro de la lista.'
+        },
         task:'Iterá la lista de frutas e imprimí cada una en mayúsculas.',
         examples:[{input:'for x in ["a","b"]:\n    print(x.upper())',output:'A\nB'}],
         starter:'frutas = ["manzana","banana","uva","mango"]\n\nfor fruta in frutas:\n    print(fruta.upper())',
@@ -708,19 +899,72 @@ const CURRICULUM = [
   },
   { id:'structures', icon:'📦', title:'Estructuras',
     lessons:[
-      { id:'lists', title:'Listas', kyu:'Nv3', pts:35, topic:'listas',
+      { id:'lists', title:'Listas', kyu:'Nv3', pts:35, topic:'listas []',
+        theory:{
+          title:'Listas: colecciones ordenadas y modificables',
+          why:'Una lista es una <strong>colección de elementos en orden</strong>. Es la estructura de datos más usada en Python. Podés agregarle cosas, sacarle cosas, ordenarla, filtrarla. Representa datos del mundo real: lista de usuarios, lista de productos, resultados de una búsqueda, mensajes de un chat.',
+          syntax:`numeros = [<span class="sn">10</span>, <span class="sn">20</span>, <span class="sn">30</span>]
+
+<span class="sc"># Acceso por índice (empieza en 0)</span>
+numeros[<span class="sn">0</span>]     <span class="sc"># 10 (primero)</span>
+numeros[-<span class="sn">1</span>]    <span class="sc"># 30 (último)</span>
+
+<span class="sc"># Métodos principales</span>
+lista.append(<span class="ss">"x"</span>)    <span class="sc"># agrega al final</span>
+lista.remove(<span class="ss">"x"</span>)    <span class="sc"># elimina el valor</span>
+lista.pop()           <span class="sc"># elimina y retorna el último</span>
+<span class="sf">len</span>(lista)            <span class="sc"># cantidad de elementos</span>
+lista.sort()          <span class="sc"># ordena</span>`,
+          realworld:['usuarios = [] → agregar con append() cuando se registran','resultados = bd.buscar("Python") → lista de filas','carrito = [item1, item2] → lista de productos seleccionados'],
+          tip:'Los índices empiezan en 0, no en 1. El primer elemento es lista[0]. El -1 siempre da el último sin importar el largo — muy útil.'
+        },
         task:'Creá lista <strong>frutas</strong> con 3+ frutas. Imprimí primera, última y cantidad (<code>len</code>).',
         examples:[{input:'n=[10,20,30]\nprint(n[0],n[-1],len(n))',output:'10 30 3'}],
         starter:'frutas = ["manzana","banana","uva"]\nprint(frutas[0])\nprint(frutas[-1])\nprint(len(frutas))',
         tests:[{desc:'Usa len()',fn:(o,c)=>c.includes('len(')}]
       },
-      { id:'dicts', title:'Diccionarios', kyu:'Nv3', pts:40, topic:'diccionarios',
+      { id:'dicts', title:'Diccionarios', kyu:'Nv3', pts:40, topic:'diccionarios {}',
+        theory:{
+          title:'Diccionarios: datos con nombre, no con número',
+          why:'Un diccionario guarda pares <strong>clave:valor</strong>. En lugar de acceder a datos por posición (como en listas), los accedés por nombre. Es como una ficha de datos: sabés que querés el "nombre" o la "edad", no que querés el "elemento 2". Son fundamentales en Python — las respuestas de APIs vienen como diccionarios, los registros de bases de datos también.',
+          syntax:`persona = {
+    <span class="ss">"nombre"</span>: <span class="ss">"Ana"</span>,
+    <span class="ss">"edad"</span>: <span class="sn">25</span>,
+    <span class="ss">"activa"</span>: <span class="sk">True</span>
+}
+
+<span class="sc"># Acceder a valores</span>
+persona[<span class="ss">"nombre"</span>]              <span class="sc"># "Ana"</span>
+persona.get(<span class="ss">"trabajo"</span>, <span class="ss">"N/A"</span>)  <span class="sc"># si no existe → "N/A"</span>
+
+<span class="sc"># Modificar</span>
+persona[<span class="ss">"edad"</span>] = <span class="sn">26</span>           <span class="sc"># actualizar</span>
+persona[<span class="ss">"email"</span>] = <span class="ss">"a@b.com"</span>  <span class="sc"># agregar nueva clave</span>`,
+          realworld:['response.json() devuelve un dict: data["user"]["name"]','Registros de BD: {"id": 1, "nombre": "Ana", "email": "..."}','Configuración: config = {"debug": True, "max_users": 100}'],
+          tip:'.get() es más seguro que [] para acceder a claves — si la clave no existe, get() devuelve None en lugar de tirar un error. Usalo cuando no estés seguro si la clave existe.'
+        },
         task:'Creá diccionario <strong>persona</strong> con nombre, edad, ciudad. Imprimí nombre y ciudad.',
         examples:[{input:'d={"a":1}\nprint(d["a"])',output:'1'}],
         starter:'persona = {\n    "nombre": "María",\n    "edad": 28,\n    "ciudad": "Buenos Aires"\n}\nprint(persona["nombre"])\nprint(persona["ciudad"])',
         tests:[{desc:'Crea diccionario',fn:(o,c)=>c.includes('{')&&c.includes(':')},{desc:'Accede a claves',fn:(o,c)=>c.includes('["')||c.includes("['")}]
       },
       { id:'tuples-sets', title:'Tuplas y Sets', kyu:'Nv3', pts:40, topic:'tuplas y sets',
+        theory:{
+          title:'Tuplas y Sets: cuándo y por qué usarlos',
+          why:'<strong>Tupla</strong>: como una lista pero que <strong>no puede cambiar</strong>. Perfecta para datos fijos: coordenadas GPS, colores RGB, una fecha. Ser inmutable la hace más segura — no hay riesgo de modificarla accidentalmente. <strong>Set</strong>: colección <strong>sin duplicados y sin orden</strong>. Ideal para verificar si algo existe o para eliminar repetidos de una lista.',
+          syntax:`<span class="sc"># Tupla — no se puede modificar</span>
+coords = (<span class="sn">-34.6</span>, <span class="sn">-58.4</span>)
+lat, lng = coords  <span class="sc"># unpacking</span>
+
+<span class="sc"># Set — sin duplicados, sin orden</span>
+emails = {<span class="ss">"a@b.com"</span>, <span class="ss">"c@d.com"</span>, <span class="ss">"a@b.com"</span>}
+<span class="sc"># → {"a@b.com", "c@d.com"} (sin el repetido)</span>
+
+<span class="ss">"a@b.com"</span> <span class="sk">in</span> emails  <span class="sc"># verificar existencia (muy rápido)</span>
+<span class="sf">set</span>(lista)            <span class="sc"># eliminar duplicados de una lista</span>`,
+          realworld:['Tupla: coordenadas, configuración que no debe cambiar, colores RGB','Set: emails únicos de suscriptores, tags sin repetir, IDs visitados','set(lista) para deduplicar rápido cualquier lista'],
+          tip:'¿Cuándo usar cada uno? Lista: orden importa y vas a modificarla. Diccionario: necesitás buscar por nombre. Tupla: datos fijos que no cambian. Set: solo importa si algo existe o no.'
+        },
         task:'Creá una tupla <strong>coordenadas</strong> con (lat, lng). Creá un set <strong>colores</strong> con valores repetidos y mostrá que el set elimina duplicados.',
         examples:[{input:'t=(1,2)\ns={1,1,2,3}\nprint(t)\nprint(s)',output:'(1, 2)\n{1, 2, 3}'}],
         starter:'coordenadas = (-34.6, -58.4)\nprint(coordenadas)\nprint(type(coordenadas))\n\ncolores = {"rojo","azul","rojo","verde","azul"}\nprint(colores)\nprint(f"Sin duplicados: {len(colores)} colores")',
@@ -731,18 +975,71 @@ const CURRICULUM = [
   { id:'functions', icon:'⚙️', title:'Funciones',
     lessons:[
       { id:'def', title:'def — crear funciones', kyu:'Nv3', pts:40, topic:'funciones',
+        theory:{
+          title:'Funciones: bloques de código reutilizables',
+          why:'Una función es un <strong>bloque de código con nombre</strong> que podés ejecutar cuando quieras. En lugar de copiar y pegar el mismo código, lo escribís una vez dentro de una función y lo llamás cuando lo necesités. Las funciones son la base del código limpio: si algo se repite 3 veces, hacelo una función.',
+          syntax:`<span class="sk">def</span> <span class="sf">nombre_funcion</span>(parametro1, parametro2):
+    <span class="sc"># código que ejecuta la función</span>
+    resultado = parametro1 + parametro2
+    <span class="sk">return</span> resultado   <span class="sc"># devuelve un valor</span>
+
+<span class="sc"># Llamar la función</span>
+mi_resultado = <span class="sf">nombre_funcion</span>(<span class="sn">3</span>, <span class="sn">5</span>)  <span class="sc"># → 8</span>
+
+<span class="sc"># Parámetros con valor por defecto</span>
+<span class="sk">def</span> <span class="sf">saludar</span>(nombre, saludo=<span class="ss">"Hola"</span>):
+    <span class="sk">return</span> <span class="sf">f</span><span class="ss">"{saludo}, {nombre}!"</span>`,
+          realworld:['def calcular_impuesto(precio): → reutilizás en toda la app','def validar_email(email): → misma lógica en registro y login','def conectar_bd(): → la conexión siempre igual, un solo lugar para cambiarla'],
+          tip:'Regla de oro: una función debe hacer UNA sola cosa y hacerla bien. Si una función hace demasiado (conecta a la BD, valida datos Y envía email), divídila en tres funciones más pequeñas.'
+        },
         task:'Creá <strong>saludar(nombre)</strong> que imprima "Hola, [nombre]!". Llamala 3 veces.',
         examples:[{input:'def doble(n):\n    return n*2\nprint(doble(5))',output:'10'}],
         starter:'def saludar(nombre):\n    print(f"Hola, {nombre}!")\n\nsaludar("Ana")\nsaludar("Luis")\nsaludar("Python")',
         tests:[{desc:'Define función',fn:(o,c)=>c.includes('def ')},{desc:'Llama 3 veces',fn:(o)=>o.split('Hola').length-1>=3}]
       },
       { id:'return', title:'return — devolver valores', kyu:'Nv3', pts:45, topic:'return',
-        task:'Creá <strong>area_rectangulo(base, altura)</strong> que retorne el área. Llamala con 3 rectangulos.',
+        theory:{
+          title:'return: la función te da un resultado de vuelta',
+          why:'<strong>return</strong> hace que la función <strong>entregue un resultado</strong> que podés usar en otro lado. La diferencia entre print() y return: print muestra algo en pantalla y se olvida. return lo entrega para que lo guardés en una variable, lo pasés a otra función, o lo uses en un cálculo. En el trabajo casi siempre necesitás el return.',
+          syntax:`<span class="sk">def</span> <span class="sf">area</span>(base, altura):
+    <span class="sk">return</span> base * altura   <span class="sc"># devuelve el resultado</span>
+
+<span class="sc"># Podés usar el resultado directamente</span>
+resultado = <span class="sf">area</span>(<span class="sn">5</span>, <span class="sn">3</span>)   <span class="sc"># → 15</span>
+<span class="sk">print</span>(<span class="sf">area</span>(<span class="sn">10</span>, <span class="sn">2</span>))        <span class="sc"># → 20</span>
+
+<span class="sc"># return detiene la función ahí</span>
+<span class="sk">def</span> <span class="sf">positivo</span>(n):
+    <span class="sk">if</span> n < <span class="sn">0</span>: <span class="sk">return</span> <span class="sn">0</span>   <span class="sc"># sale temprano</span>
+    <span class="sk">return</span> n`,
+          realworld:['total = calcular_impuesto(precio) — guardás el resultado','if validar_email(email): — usás el True/False que devuelve','datos = obtener_usuario(id) — guardás el dict que retorna'],
+          tip:'Una función sin return devuelve None implícitamente. Si hacés resultado = mi_funcion() y la función no tiene return, resultado va a ser None — un error muy común.'
+        },
+        task:'Creá <strong>area_rectangulo(base, altura)</strong> que retorne el área. Llamala con 3 rectángulos.',
         examples:[{input:'def sq(x):\n    return x*x\nprint(sq(4))',output:'16'}],
         starter:'def area_rectangulo(base, altura):\n    return base * altura\n\nprint(area_rectangulo(5, 3))\nprint(area_rectangulo(10, 2))\nprint(area_rectangulo(7, 7))',
         tests:[{desc:'Usa return',fn:(o,c)=>c.includes('return')},{desc:'5×3=15 correcto',fn:(o)=>o.includes('15')}]
       },
-      { id:'lambda', title:'lambda — una línea', kyu:'Nv4', pts:50, topic:'lambda',
+      { id:'lambda', title:'lambda — función de una línea', kyu:'Nv4', pts:50, topic:'lambda',
+        theory:{
+          title:'lambda: funciones anónimas y compactas',
+          why:'<strong>lambda</strong> es una función que se escribe en una sola línea, sin nombre propio. No reemplaza a def — se usa cuando la función es tan simple que no merece un nombre completo, especialmente cuando la pasás como argumento a otra función. Lo vas a ver mucho con map(), filter() y sorted().',
+          syntax:`<span class="sc"># Sintaxis: lambda parametros: expresion</span>
+cuadrado = <span class="sk">lambda</span> x: x ** <span class="sn">2</span>
+<span class="sk">print</span>(cuadrado(<span class="sn">5</span>))   <span class="sc"># 25</span>
+
+<span class="sc"># Con map() — aplica a cada elemento</span>
+numeros = [<span class="sn">1</span>, <span class="sn">2</span>, <span class="sn">3</span>, <span class="sn">4</span>]
+dobles = <span class="sf">list</span>(<span class="sf">map</span>(<span class="sk">lambda</span> x: x*<span class="sn">2</span>, numeros))
+
+<span class="sc"># Con filter() — filtra elementos</span>
+pares = <span class="sf">list</span>(<span class="sf">filter</span>(<span class="sk">lambda</span> x: x%<span class="sn">2</span>==<span class="sn">0</span>, numeros))
+
+<span class="sc"># Con sorted() — clave de ordenamiento</span>
+<span class="sf">sorted</span>(usuarios, key=<span class="sk">lambda</span> u: u[<span class="ss">"edad"</span>])`,
+          realworld:['sorted(productos, key=lambda p: p["precio"]) — ordenar por precio','map(lambda x: x*1.21, precios) — aplicar IVA a todos','filter(lambda u: u["activo"], usuarios) — filtrar activos'],
+          tip:'Si la lógica tiene más de una línea o necesitás reutilizarla, usá def. Lambda es para operaciones simples en el momento. No compliques lambdas — la legibilidad es prioritaria.'
+        },
         task:'Creá lambda <strong>cuadrado</strong> y usala con <code>map()</code> sobre [1,2,3,4,5].',
         examples:[{input:'doble = lambda x: x*2\nprint(doble(4))',output:'8'}],
         starter:'cuadrado = lambda x: x ** 2\n\nnumeros = [1, 2, 3, 4, 5]\nresultados = list(map(cuadrado, numeros))\nprint(resultados)',
@@ -752,13 +1049,49 @@ const CURRICULUM = [
   },
   { id:'oop', icon:'🏗️', title:'POO',
     lessons:[
-      { id:'class', title:'class — tus tipos', kyu:'Nv4', pts:55, topic:'clases',
+      { id:'class', title:'class — crear tus tipos', kyu:'Nv4', pts:55, topic:'clases y objetos',
+        theory:{
+          title:'Clases: crear tus propios tipos de datos',
+          why:'Una <strong>clase</strong> es un molde para crear objetos que tienen <strong>sus propios datos y comportamientos</strong>. En lugar de manejar datos sueltos (nombre, edad, email de un usuario por separado), los agrupás en una clase Usuario que los contiene juntos y sabe qué hacer con ellos. Es la base del código organizado en proyectos grandes.',
+          syntax:`<span class="sk">class</span> <span class="sf">MiClase</span>:
+    <span class="sk">def</span> <span class="sf">__init__</span>(self, valor):  <span class="sc"># constructor</span>
+        self.valor = valor      <span class="sc"># atributo</span>
+
+    <span class="sk">def</span> <span class="sf">mi_metodo</span>(self):        <span class="sc"># método</span>
+        <span class="sk">return</span> self.valor * <span class="sn">2</span>
+
+<span class="sc"># Crear un objeto (instancia)</span>
+obj = <span class="sf">MiClase</span>(<span class="sn">10</span>)
+<span class="sk">print</span>(obj.valor)          <span class="sc"># 10</span>
+<span class="sk">print</span>(obj.mi_metodo())    <span class="sc"># 20</span>`,
+          realworld:['class Usuario: contiene nombre, email, permisos y métodos como login()','class Producto: precio, stock, y métodos como aplicar_descuento()','class ConexionBD: maneja la conexión y tiene métodos query(), commit()'],
+          tip:'self es la referencia al objeto mismo — siempre es el primer parámetro de los métodos. Cuando llamás obj.metodo(), Python automáticamente pasa obj como self.'
+        },
         task:'Creá clase <strong>Perro</strong> con nombre y raza, método <strong>ladrar()</strong>. Instanciá 2 perros.',
         examples:[{input:'class G:\n    def m(self):\n        print("Miau")\nG().m()',output:'Miau'}],
         starter:'class Perro:\n    def __init__(self, nombre, raza):\n        self.nombre = nombre\n        self.raza = raza\n    def ladrar(self):\n        print(f"¡Guau! Soy {self.nombre}")\n\np1 = Perro("Rex","Labrador")\np2 = Perro("Luna","Caniche")\np1.ladrar()\np2.ladrar()',
         tests:[{desc:'Define clase',fn:(o,c)=>c.includes('class ')},{desc:'2 ladridos',fn:(o)=>o.split('Guau').length-1>=2}]
       },
       { id:'inheritance', title:'Herencia', kyu:'Nv4', pts:65, topic:'herencia',
+        theory:{
+          title:'Herencia: reutilizar y especializar clases',
+          why:'La <strong>herencia</strong> permite crear una clase nueva basada en otra existente, reutilizando todo su código y agregando o modificando lo que necesitás. En lugar de copiar código entre clases similares, creás una clase base con lo común y clases hijas que especializan. Es uno de los conceptos más preguntados en entrevistas técnicas.',
+          syntax:`<span class="sk">class</span> <span class="sf">Animal</span>:            <span class="sc"># clase padre (base)</span>
+    <span class="sk">def</span> <span class="sf">__init__</span>(self, nombre):
+        self.nombre = nombre
+    <span class="sk">def</span> <span class="sf">hablar</span>(self):
+        <span class="sk">print</span>(<span class="ss">"..."</span>)
+
+<span class="sk">class</span> <span class="sf">Perro</span>(<span class="sf">Animal</span>):     <span class="sc"># hereda de Animal</span>
+    <span class="sk">def</span> <span class="sf">hablar</span>(self):       <span class="sc"># sobreescribe el método</span>
+        <span class="sk">print</span>(<span class="sf">f</span><span class="ss">"¡Guau! Soy {self.nombre}"</span>)
+
+<span class="sc"># Polimorfismo: mismo método, distintos comportamientos</span>
+<span class="sk">for</span> a <span class="sk">in</span> [<span class="sf">Perro</span>(<span class="ss">"Rex"</span>), <span class="sf">Gato</span>(<span class="ss">"Luna"</span>)]:
+    a.hablar()`,
+          realworld:['class Admin(Usuario): hereda login() y agrega permisos extra','class CuentaPremium(Cuenta): hereda operaciones básicas y agrega beneficios','class PostgreSQLDB(Database): implementa la interfaz para Postgres específicamente'],
+          tip:'super() te permite llamar al constructor o método del padre desde la clase hija. Útil cuando querés extender, no reemplazar completamente: super().__init__(nombre) y después agregás lo tuyo.'
+        },
         task:'Clase <strong>Animal</strong> con <code>hablar()</code>. <strong>Gato</strong> y <strong>Perro</strong> heredan y sobreescriben el método.',
         examples:[{input:'class A:\n    def m(self):\n        pass\nclass B(A):\n    def m(self):\n        print("B")\nB().m()',output:'B'}],
         starter:'class Animal:\n    def hablar(self):\n        print("...")\n\nclass Gato(Animal):\n    def hablar(self):\n        print("Miau!")\n\nclass Perro(Animal):\n    def hablar(self):\n        print("¡Guau!")\n\nanimales = [Gato(), Perro(), Gato()]\nfor a in animales:\n    a.hablar()',
@@ -768,7 +1101,26 @@ const CURRICULUM = [
   },
   { id:'errors', icon:'🛡️', title:'Errores',
     lessons:[
-      { id:'try-except', title:'try / except', kyu:'Nv4', pts:55, topic:'excepciones',
+      { id:'try-except', title:'try / except', kyu:'Nv4', pts:55, topic:'manejo de errores',
+        theory:{
+          title:'try/except: manejar errores sin romper el programa',
+          why:'En el mundo real, las cosas fallan: el usuario ingresa datos incorrectos, la red se corta, el archivo no existe, la base de datos no responde. <strong>try/except</strong> te permite anticipar esos errores y manejarlos con gracia en lugar de que el programa explote. Es la diferencia entre un programa amateur y uno profesional.',
+          syntax:`<span class="sk">try</span>:
+    <span class="sc"># código que puede fallar</span>
+    resultado = <span class="sn">10</span> / <span class="sn">0</span>
+<span class="sk">except</span> <span class="sf">ZeroDivisionError</span>:
+    <span class="sk">print</span>(<span class="ss">"División por cero"</span>)
+<span class="sk">except</span> <span class="sf">ValueError</span> <span class="sk">as</span> e:
+    <span class="sk">print</span>(<span class="sf">f</span><span class="ss">"Error de valor: {e}"</span>)
+<span class="sk">finally</span>:
+    <span class="sk">print</span>(<span class="ss">"Esto siempre se ejecuta"</span>)
+
+<span class="sc"># Errores comunes</span>
+<span class="sc"># ZeroDivisionError, ValueError, TypeError</span>
+<span class="sc"># KeyError, IndexError, FileNotFoundError</span>`,
+          realworld:['try: conectar_bd() except: usar_cache()','try: validar_datos(form) except ValueError: mostrar_error()','try: llamar_api() except requests.Timeout: reintentar()'],
+          tip:'No uses except Exception demasiado genérico — capturá el error específico que esperás. Si capturás todo, pueden pasar errores que no querías ignorar y el bug es difícil de encontrar.'
+        },
         task:'Manejá <code>ZeroDivisionError</code> con try/except en una función <strong>dividir(a,b)</strong>.',
         examples:[{input:'try:\n    x=1/0\nexcept:\n    print("error")',output:'error'}],
         starter:'def dividir(a, b):\n    try:\n        resultado = a / b\n        print(f"{a} / {b} = {resultado}")\n    except ZeroDivisionError:\n        print("¡No se puede dividir por cero!")\n\ndividir(10, 2)\ndividir(5, 0)\ndividir(9, 3)',
@@ -778,7 +1130,24 @@ const CURRICULUM = [
   },
   { id:'files', icon:'📁', title:'Archivos',
     lessons:[
-      { id:'readwrite', title:'Leer y escribir', kyu:'Nv4', pts:60, topic:'archivos',
+      { id:'readwrite', title:'Leer y escribir archivos', kyu:'Nv4', pts:60, topic:'archivos',
+        theory:{
+          title:'Trabajar con archivos: datos que persisten',
+          why:'Los programas necesitan <strong>guardar información que sobreviva</strong> más allá de la ejecución. Los archivos son la forma más básica de persistencia. Aunque en el trabajo vas a usar bases de datos, archivos se usan para: logs del sistema, archivos de configuración, exportar reportes CSV, leer datos de entrada, guardar resultados.',
+          syntax:`<span class="sc"># Escribir un archivo</span>
+<span class="sk">with</span> <span class="sf">open</span>(<span class="ss">"archivo.txt"</span>, <span class="ss">"w"</span>) <span class="sk">as</span> f:
+    f.write(<span class="ss">"línea 1\\n"</span>)
+    f.write(<span class="ss">"línea 2\\n"</span>)
+
+<span class="sc"># Leer un archivo</span>
+<span class="sk">with</span> <span class="sf">open</span>(<span class="ss">"archivo.txt"</span>, <span class="ss">"r"</span>) <span class="sk">as</span> f:
+    contenido = f.read()      <span class="sc"># todo el archivo</span>
+    lineas = f.readlines()   <span class="sc"># lista de líneas</span>
+
+<span class="sc"># Modos: "w" escribir, "r" leer, "a" agregar</span>`,
+          realworld:['Leer config.json para configuración de la app','Escribir log.txt con errores del sistema','Exportar resultados a reporte.csv para el cliente'],
+          tip:'Siempre usá with open(...) — garantiza que el archivo se cierre correctamente aunque haya un error. Sin with, si el programa falla el archivo puede quedar corrompido o bloqueado.'
+        },
         task:'Creá <strong>notas.txt</strong>, escribí 3 líneas, leelo e imprimí el contenido.',
         examples:[{input:'with open("f","w") as f:\n    f.write("x")',output:''}],
         starter:'with open("notas.txt", "w") as f:\n    f.write("Línea 1: Python es poderoso\\n")\n    f.write("Línea 2: Sigo aprendiendo\\n")\n    f.write("Línea 3: Voy bien!\\n")\n\nwith open("notas.txt", "r") as f:\n    contenido = f.read()\n    print(contenido)',
@@ -789,12 +1158,47 @@ const CURRICULUM = [
   { id:'ai-module', icon:'🤖', title:'Tu primera IA',
     lessons:[
       { id:'sklearn', title:'ML con scikit-learn', kyu:'Nv5', pts:80, topic:'machine learning',
+        theory:{
+          title:'Machine Learning: enseñarle a una computadora con ejemplos',
+          why:'El <strong>Machine Learning</strong> es enseñarle a un programa a tomar decisiones dándole ejemplos, en lugar de programar reglas a mano. En lugar de escribir "si peso > 170g y color rojo entonces es manzana", le mostrás 1000 ejemplos de manzanas y naranjas y el algoritmo aprende solo los patrones. scikit-learn es la librería estándar de ML en Python.',
+          syntax:`<span class="sk">from</span> sklearn.tree <span class="sk">import</span> DecisionTreeClassifier
+
+<span class="sc"># X = características, y = etiquetas</span>
+X = [[<span class="sn">180</span>, <span class="sn">0</span>], [<span class="sn">150</span>, <span class="sn">1</span>]]  <span class="sc"># [peso, color]</span>
+y = [<span class="ss">"manzana"</span>, <span class="ss">"naranja"</span>]
+
+<span class="sc"># 1. Crear el modelo</span>
+modelo = <span class="sf">DecisionTreeClassifier</span>()
+<span class="sc"># 2. Entrenarlo con los datos</span>
+modelo.fit(X, y)
+<span class="sc"># 3. Predecir nuevos datos</span>
+modelo.predict([[<span class="sn">160</span>, <span class="sn">0</span>]])   <span class="sc"># → manzana</span>`,
+          realworld:['Clasificar emails como spam o no spam','Predecir si un cliente va a cancelar su suscripción','Detectar transacciones fraudulentas en tiempo real'],
+          tip:'El flujo de ML siempre es el mismo: preparar datos → crear modelo → entrenar con .fit() → predecir con .predict(). Scikit-learn mantiene esta interfaz consistente para todos sus modelos.'
+        },
         task:'Entrenás un <code>DecisionTreeClassifier</code> para clasificar manzanas/naranjas por peso y color.',
         examples:[{input:'# sklearn en el browser vía Pyodide',output:''}],
         starter:'from sklearn.tree import DecisionTreeClassifier\n\nX = [[182,0],[167,0],[176,0],[140,1],[154,1],[148,1]]\ny = ["manzana","manzana","manzana","naranja","naranja","naranja"]\n\nmodelo = DecisionTreeClassifier()\nmodelo.fit(X, y)\n\nfrutas = [[160,0],[145,1],[170,0]]\nfor f in frutas:\n    pred = modelo.predict([f])\n    print(f"Peso {f[0]}g, color {f[1]} → {pred[0]}")',
         tests:[{desc:'Usa fit()',fn:(o,c)=>c.includes('.fit(')},{desc:'Usa predict()',fn:(o,c)=>c.includes('.predict(')}]
       },
       { id:'llm-api', title:'IA que responde preguntas', kyu:'Nv5', pts:100, topic:'APIs y LLMs',
+        theory:{
+          title:'LLMs y APIs: cómo hablarle a una IA desde tu código',
+          why:'Los <strong>LLMs</strong> (Large Language Models) como Claude o GPT son IAs que entienden y generan texto. Podés usarlos en tu código a través de sus APIs. Esto es lo que está cambiando el mundo del desarrollo ahora mismo — integrar IA en cualquier aplicación ya no requiere conocimiento profundo de ML, solo saber hacer llamadas HTTP correctamente.',
+          syntax:`<span class="sc"># Estructura del payload para un LLM</span>
+payload = {
+    <span class="ss">"model"</span>: <span class="ss">"claude-sonnet..."</span>,
+    <span class="ss">"messages"</span>: [
+        {<span class="ss">"role"</span>: <span class="ss">"system"</span>, <span class="ss">"content"</span>: <span class="ss">"instrucciones"</span>},
+        {<span class="ss">"role"</span>: <span class="ss">"user"</span>, <span class="ss">"content"</span>: <span class="ss">"pregunta"</span>}
+    ]
+}
+<span class="sc"># role "system": personalidad/instrucciones del AI</span>
+<span class="sc"># role "user": lo que pregunta el usuario</span>
+<span class="sc"># role "assistant": respuestas previas del AI</span>`,
+          realworld:['Chatbot de soporte que responde preguntas de clientes','Generador automático de descripciones de productos','Analizador de sentimiento de reviews de usuarios'],
+          tip:'El "system prompt" es donde le das personalidad e instrucciones a la IA: "Sos un asistente de soporte, respondé en español, no inventes precios". Es la parte más importante para controlar el comportamiento.'
+        },
         task:'Creá <strong>preguntar_ia(pregunta)</strong> que arme el payload correcto para un LLM (mensajes con role/content).',
         examples:[{input:'# Estructura de llamada a LLM',output:''}],
         starter:'import json\n\ndef preguntar_ia(pregunta):\n    payload = {\n        "model": "claude-sonnet-4-20250514",\n        "messages": [\n            {"role":"system","content":"Sos un asistente en español."},\n            {"role":"user","content": pregunta}\n        ]\n    }\n    print(json.dumps(payload, indent=2, ensure_ascii=False))\n    return payload\n\nresultado = preguntar_ia("¿Qué es Python?")\nprint(f"\\nMensajes: {len(resultado[\'messages\'])}")',
@@ -804,556 +1208,27 @@ const CURRICULUM = [
   }
 ];
 
-// ══════════════════════════════════════════
-//  BIBLIOTECA — contenido
-// ══════════════════════════════════════════
+// ══ LIBRARY DATA (same as before) ══
 const LIBRARY = [
   { id:'intro-python', cat:'🐍 Python', catId:'python-basics', title:'¿Qué es Python?',
-    html:`
-<h1>¿Qué es Python?</h1>
-<p class="subtitle">El lenguaje más popular del mundo para comenzar — y también para trabajar en empresas de primer nivel.</p>
-<h2>Historia y contexto</h2>
-<p>Python fue creado por <strong>Guido van Rossum</strong> en 1991. Su nombre no viene de la serpiente sino del grupo de humor británico <em>Monty Python</em>. Hoy es el lenguaje más popular del mundo según índices como TIOBE y Stack Overflow.</p>
-<p>Lo usa <strong>Google, NASA, Netflix, Instagram, Spotify y OpenAI</strong>. No es casualidad: Python combina legibilidad con poder real.</p>
-<h2>¿Por qué aprender Python?</h2>
-<ul>
-  <li><strong>Sintaxis clara:</strong> Se lee casi como pseudocódigo en inglés.</li>
-  <li><strong>Versatilidad:</strong> Web, IA, datos, automatización, scripting.</li>
-  <li><strong>Ecosistema:</strong> Cientos de miles de librerías disponibles.</li>
-  <li><strong>Demanda laboral:</strong> Uno de los lenguajes mejor pagos del mercado.</li>
-</ul>
-<div class="tip-box">Python usa indentación (espacios) en lugar de llaves {} para definir bloques de código. Esto lo hace más legible pero requiere consistencia.</div>
-<h2>Tu primer programa</h2>
-<div class="code-block"><span class="c-cm"># Esto es un comentario</span>
-<span class="c-fn">print</span>(<span class="c-str">"¡Hola, mundo!"</span>)  <span class="c-cm"># Imprime en pantalla</span>
-
-<span class="c-cm"># Python es dinámicamente tipado</span>
-x = <span class="c-num">42</span>          <span class="c-cm"># int</span>
-pi = <span class="c-num">3.14</span>        <span class="c-cm"># float</span>
-nombre = <span class="c-str">"Ana"</span>    <span class="c-cm"># str</span>
-activo = <span class="c-kw">True</span>     <span class="c-cm"># bool</span></div>
-<h2>El Zen de Python</h2>
-<p>Python tiene una filosofía de diseño. Podés verla escribiendo <code>import this</code>. Algunos principios clave:</p>
-<ul>
-  <li><strong>Bello es mejor que feo.</strong></li>
-  <li><strong>Explícito es mejor que implícito.</strong></li>
-  <li><strong>Simple es mejor que complejo.</strong></li>
-  <li><strong>La legibilidad importa.</strong></li>
-</ul>
-`
-  },
+    html:`<h1>¿Qué es Python?</h1><p class="subtitle">El lenguaje más popular del mundo para comenzar — y también para trabajar en empresas de primer nivel.</p><h2>Historia y contexto</h2><p>Python fue creado por <strong>Guido van Rossum</strong> en 1991. Hoy es el lenguaje más popular del mundo según índices como TIOBE y Stack Overflow.</p><p>Lo usa <strong>Google, NASA, Netflix, Instagram, Spotify y OpenAI</strong>.</p><h2>¿Por qué aprender Python?</h2><ul><li><strong>Sintaxis clara:</strong> Se lee casi como pseudocódigo.</li><li><strong>Versatilidad:</strong> Web, IA, datos, automatización.</li><li><strong>Ecosistema:</strong> Cientos de miles de librerías.</li><li><strong>Demanda laboral:</strong> Uno de los lenguajes mejor pagos.</li></ul><div class="tip-box">Python usa indentación (espacios) en lugar de llaves {} para definir bloques de código.</div><h2>Tu primer programa</h2><div class="code-block"><span class="c-fn">print</span>(<span class="c-str">"¡Hola, mundo!"</span>)<br>x = <span class="c-num">42</span> <span class="c-cm"># int</span><br>pi = <span class="c-num">3.14</span> <span class="c-cm"># float</span><br>nombre = <span class="c-str">"Ana"</span> <span class="c-cm"># str</span></div>`},
   { id:'variables-tipos', cat:'🐍 Python', catId:'python-basics', title:'Variables y Tipos',
-    html:`
-<h1>Variables y Tipos de Datos</h1>
-<p class="subtitle">El fundamento de todo programa — cómo guardar y manipular información.</p>
-<h2>Variables</h2>
-<p>Una variable es un nombre que apunta a un valor en memoria. En Python no necesitás declarar el tipo: Python lo infiere solo.</p>
-<div class="code-block">nombre = <span class="c-str">"Lucía"</span>
-edad = <span class="c-num">25</span>
-altura = <span class="c-num">1.68</span>
-activa = <span class="c-kw">True</span>
-
-<span class="c-cm"># Múltiple asignación</span>
-x, y, z = <span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>
-a = b = c = <span class="c-num">0</span></div>
-<h2>Tipos principales</h2>
-<h3>int y float</h3>
-<div class="code-block">entero = <span class="c-num">42</span>
-decimal = <span class="c-num">3.14159</span>
-negativo = <span class="c-num">-7</span>
-grande = <span class="c-num">1_000_000</span>  <span class="c-cm"># el _ mejora legibilidad</span>
-
-<span class="c-cm"># Operaciones</span>
-suma = <span class="c-num">10</span> + <span class="c-num">3</span>        <span class="c-cm"># 13</span>
-resta = <span class="c-num">10</span> - <span class="c-num">3</span>       <span class="c-cm"># 7</span>
-mult = <span class="c-num">10</span> * <span class="c-num">3</span>        <span class="c-cm"># 30</span>
-div = <span class="c-num">10</span> / <span class="c-num">3</span>         <span class="c-cm"># 3.333...</span>
-div_entera = <span class="c-num">10</span> // <span class="c-num">3</span>  <span class="c-cm"># 3</span>
-modulo = <span class="c-num">10</span> % <span class="c-num">3</span>      <span class="c-cm"># 1</span>
-potencia = <span class="c-num">2</span> ** <span class="c-num">8</span>    <span class="c-cm"># 256</span></div>
-<h3>str (strings)</h3>
-<div class="code-block">texto1 = <span class="c-str">"doble comilla"</span>
-texto2 = <span class="c-str">'simple comilla'</span>
-multilinea = <span class="c-str">"""
-línea 1
-línea 2
-"""</span>
-
-nombre = <span class="c-str">"Python"</span>
-version = <span class="c-num">3</span>
-<span class="c-cm"># f-strings (recomendado)</span>
-msg = <span class="c-fn">f</span><span class="c-str">"Usando {nombre} versión {version}"</span>
-
-<span class="c-cm"># Métodos comunes</span>
-<span class="c-str">"hola"</span>.upper()       <span class="c-cm"># "HOLA"</span>
-<span class="c-str">"  hola  "</span>.strip()   <span class="c-cm"># "hola"</span>
-<span class="c-str">"a,b,c"</span>.split(<span class="c-str">","</span>)   <span class="c-cm"># ["a","b","c"]</span>
-<span class="c-str">"hola mundo"</span>.replace(<span class="c-str">"mundo"</span>, <span class="c-str">"Python"</span>)</div>
-<h3>bool</h3>
-<div class="code-block">verdadero = <span class="c-kw">True</span>
-falso = <span class="c-kw">False</span>
-
-<span class="c-cm"># Operadores lógicos</span>
-<span class="c-kw">True</span> <span class="c-kw">and</span> <span class="c-kw">False</span>   <span class="c-cm"># False</span>
-<span class="c-kw">True</span> <span class="c-kw">or</span> <span class="c-kw">False</span>    <span class="c-cm"># True</span>
-<span class="c-kw">not</span> <span class="c-kw">True</span>         <span class="c-cm"># False</span></div>
-<div class="warn-box">En Python, <code>None</code> es el equivalente a "nulo" o "vacío". Se usa para representar la ausencia de valor.</div>
-`
-  },
+    html:`<h1>Variables y Tipos de Datos</h1><p class="subtitle">El fundamento de todo programa.</p><h2>Variables</h2><div class="code-block">nombre = <span class="c-str">"Lucía"</span><br>edad = <span class="c-num">25</span><br>x, y, z = <span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span></div><h2>Tipos</h2><div class="code-block">entero = <span class="c-num">42</span><br>decimal = <span class="c-num">3.14</span><br>texto = <span class="c-str">"hola"</span><br>booleano = <span class="c-kw">True</span></div><div class="tip-box">f-strings son la forma moderna de concatenar: f"Hola {nombre}"</div>`},
   { id:'estructuras-datos', cat:'📦 Estructuras', catId:'structures', title:'Listas, Dicts, Tuplas y Sets',
-    html:`
-<h1>Estructuras de Datos</h1>
-<p class="subtitle">Las cuatro estructuras fundamentales de Python — y cuándo usar cada una.</p>
-<h2>Listas []</h2>
-<p>Colección <strong>ordenada y mutable</strong>. La más usada en el día a día.</p>
-<div class="code-block">frutas = [<span class="c-str">"manzana"</span>, <span class="c-str">"banana"</span>, <span class="c-str">"uva"</span>]
-
-<span class="c-cm"># Acceso por índice (empieza en 0)</span>
-frutas[<span class="c-num">0</span>]    <span class="c-cm"># "manzana"</span>
-frutas[-<span class="c-num">1</span>]   <span class="c-cm"># "uva" (último)</span>
-frutas[<span class="c-num">1</span>:<span class="c-num">3</span>]  <span class="c-cm"># ["banana","uva"] (slicing)</span>
-
-<span class="c-cm"># Métodos clave</span>
-frutas.append(<span class="c-str">"mango"</span>)      <span class="c-cm"># agrega al final</span>
-frutas.insert(<span class="c-num">1</span>, <span class="c-str">"pera"</span>)    <span class="c-cm"># inserta en posición</span>
-frutas.remove(<span class="c-str">"banana"</span>)     <span class="c-cm"># elimina valor</span>
-frutas.pop()                  <span class="c-cm"># elimina y retorna último</span>
-frutas.sort()                 <span class="c-cm"># ordena in-place</span>
-sorted(frutas)                <span class="c-cm"># retorna nueva lista ordenada</span>
-<span class="c-fn">len</span>(frutas)                   <span class="c-cm"># cantidad de elementos</span></div>
-<h2>Diccionarios {}</h2>
-<p>Pares <strong>clave:valor</strong>. Acceso instantáneo por clave. Mutable.</p>
-<div class="code-block">persona = {
-    <span class="c-str">"nombre"</span>: <span class="c-str">"Carlos"</span>,
-    <span class="c-str">"edad"</span>: <span class="c-num">30</span>,
-    <span class="c-str">"ciudad"</span>: <span class="c-str">"Córdoba"</span>
-}
-
-<span class="c-cm"># Acceso</span>
-persona[<span class="c-str">"nombre"</span>]              <span class="c-cm"># "Carlos"</span>
-persona.get(<span class="c-str">"trabajo"</span>, <span class="c-str">"N/A"</span>)  <span class="c-cm"># "N/A" si no existe</span>
-
-<span class="c-cm"># Iterar</span>
-<span class="c-kw">for</span> k, v <span class="c-kw">in</span> persona.items():
-    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"{k}: {v}"</span>)
-
-<span class="c-cm"># Modificar</span>
-persona[<span class="c-str">"edad"</span>] = <span class="c-num">31</span>
-persona[<span class="c-str">"email"</span>] = <span class="c-str">"carlos@mail.com"</span>
-<span class="c-kw">del</span> persona[<span class="c-str">"ciudad"</span>]</div>
-<h2>Tuplas ()</h2>
-<p>Como listas pero <strong>inmutables</strong>. Perfectas para datos que no deben cambiar.</p>
-<div class="code-block">coordenadas = (<span class="c-num">-34.6</span>, <span class="c-num">-58.4</span>)
-colores_rgb = (<span class="c-num">255</span>, <span class="c-num">128</span>, <span class="c-num">0</span>)
-
-lat, lng = coordenadas  <span class="c-cm"># unpacking</span></div>
-<h2>Sets {}</h2>
-<p>Colección <strong>sin duplicados y sin orden</strong>. Ideal para verificar pertenencia rápidamente.</p>
-<div class="code-block">emails = {<span class="c-str">"a@mail.com"</span>, <span class="c-str">"b@mail.com"</span>, <span class="c-str">"a@mail.com"</span>}
-<span class="c-cm"># → solo 2 elementos (sin duplicados)</span>
-
-<span class="c-str">"a@mail.com"</span> <span class="c-kw">in</span> emails  <span class="c-cm"># True</span>
-
-<span class="c-cm"># Operaciones de conjuntos</span>
-a = {<span class="c-num">1</span>,<span class="c-num">2</span>,<span class="c-num">3</span>}
-b = {<span class="c-num">2</span>,<span class="c-num">3</span>,<span class="c-num">4</span>}
-a | b    <span class="c-cm"># unión: {1,2,3,4}</span>
-a & b    <span class="c-cm"># intersección: {2,3}</span>
-a - b    <span class="c-cm"># diferencia: {1}</span></div>
-<div class="tip-box">¿Cuándo usar cada una? Lista: cuando el orden importa o vas a agregar/quitar. Diccionario: cuando necesitás buscar por nombre/clave. Tupla: datos fijos que no cambian. Set: verificar si algo existe rápido o eliminar duplicados.</div>
-`
-  },
+    html:`<h1>Estructuras de Datos</h1><p class="subtitle">Las cuatro estructuras fundamentales.</p><h2>Listas []</h2><div class="code-block">frutas = [<span class="c-str">"manzana"</span>, <span class="c-str">"banana"</span>]<br>frutas.append(<span class="c-str">"uva"</span>)<br><span class="c-fn">len</span>(frutas)</div><h2>Diccionarios {}</h2><div class="code-block">persona = {<span class="c-str">"nombre"</span>: <span class="c-str">"Ana"</span>, <span class="c-str">"edad"</span>: <span class="c-num">25</span>}<br>persona[<span class="c-str">"nombre"</span>]</div><div class="tip-box">Lista: orden importa. Dict: buscar por nombre. Tupla: datos fijos. Set: sin duplicados.</div>`},
   { id:'funciones', cat:'⚙️ Funciones', catId:'func', title:'Funciones completas',
-    html:`
-<h1>Funciones</h1>
-<p class="subtitle">El bloque de construcción más importante del código limpio y reutilizable.</p>
-<h2>Definición básica</h2>
-<div class="code-block"><span class="c-kw">def</span> <span class="c-fn">saludar</span>(nombre):
-    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Hola, {nombre}!"</span>)
-
-saludar(<span class="c-str">"Ana"</span>)  <span class="c-cm"># Hola, Ana!</span></div>
-<h2>Parámetros y return</h2>
-<div class="code-block"><span class="c-kw">def</span> <span class="c-fn">suma</span>(a, b):
-    <span class="c-kw">return</span> a + b
-
-resultado = suma(<span class="c-num">3</span>, <span class="c-num">5</span>)  <span class="c-cm"># 8</span>
-
-<span class="c-cm"># Valores por defecto</span>
-<span class="c-kw">def</span> <span class="c-fn">potencia</span>(base, exponente=<span class="c-num">2</span>):
-    <span class="c-kw">return</span> base ** exponente
-
-potencia(<span class="c-num">3</span>)     <span class="c-cm"># 9 (usa exponente=2)</span>
-potencia(<span class="c-num">3</span>, <span class="c-num">3</span>)  <span class="c-cm"># 27</span></div>
-<h2>*args y **kwargs</h2>
-<div class="code-block"><span class="c-cm"># *args: múltiples argumentos posicionales</span>
-<span class="c-kw">def</span> <span class="c-fn">sumar_todo</span>(*numeros):
-    <span class="c-kw">return</span> <span class="c-fn">sum</span>(numeros)
-
-sumar_todo(<span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>, <span class="c-num">4</span>)  <span class="c-cm"># 10</span>
-
-<span class="c-cm"># **kwargs: argumentos con nombre</span>
-<span class="c-kw">def</span> <span class="c-fn">crear_perfil</span>(**datos):
-    <span class="c-kw">for</span> k, v <span class="c-kw">in</span> datos.items():
-        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"{k}: {v}"</span>)
-
-crear_perfil(nombre=<span class="c-str">"Ana"</span>, edad=<span class="c-num">25</span>, ciudad=<span class="c-str">"BA"</span>)</div>
-<h2>Funciones lambda</h2>
-<div class="code-block"><span class="c-cm"># Lambda: función anónima de una línea</span>
-cuadrado = <span class="c-kw">lambda</span> x: x ** <span class="c-num">2</span>
-suma = <span class="c-kw">lambda</span> a, b: a + b
-
-<span class="c-cm"># Útil con map(), filter(), sorted()</span>
-numeros = [<span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>, <span class="c-num">4</span>, <span class="c-num">5</span>]
-cuadrados = <span class="c-fn">list</span>(<span class="c-fn">map</span>(<span class="c-kw">lambda</span> x: x**<span class="c-num">2</span>, numeros))
-pares = <span class="c-fn">list</span>(<span class="c-fn">filter</span>(<span class="c-kw">lambda</span> x: x%<span class="c-num">2</span>==<span class="c-num">0</span>, numeros))</div>
-<h2>Scope (alcance)</h2>
-<div class="code-block">x = <span class="c-str">"global"</span>
-
-<span class="c-kw">def</span> <span class="c-fn">funcion</span>():
-    x = <span class="c-str">"local"</span>  <span class="c-cm"># no modifica la global</span>
-    <span class="c-fn">print</span>(x)
-
-funcion()  <span class="c-cm"># "local"</span>
-<span class="c-fn">print</span>(x)   <span class="c-cm"># "global"</span></div>
-<div class="warn-box">Las variables definidas dentro de una función solo existen dentro de ella. Usar <code>global</code> para modificar variables globales es posible pero no recomendado.</div>
-`
-  },
+    html:`<h1>Funciones</h1><p class="subtitle">El bloque de construcción más importante del código limpio.</p><h2>Definición</h2><div class="code-block"><span class="c-kw">def</span> <span class="c-fn">suma</span>(a, b):<br>    <span class="c-kw">return</span> a + b</div><h2>Lambda</h2><div class="code-block">cuadrado = <span class="c-kw">lambda</span> x: x ** <span class="c-num">2</span><br><span class="c-fn">list</span>(<span class="c-fn">map</span>(<span class="c-kw">lambda</span> x: x*<span class="c-num">2</span>, [<span class="c-num">1</span>,<span class="c-num">2</span>,<span class="c-num">3</span>]))</div>`},
   { id:'poo', cat:'🏗️ POO', catId:'oop', title:'Programación Orientada a Objetos',
-    html:`
-<h1>Programación Orientada a Objetos</h1>
-<p class="subtitle">El paradigma que domina el desarrollo profesional — y que toda entrevista técnica toca.</p>
-<h2>¿Qué es la POO?</h2>
-<p>POO es una forma de organizar código donde agrupás <strong>datos</strong> (atributos) y <strong>comportamientos</strong> (métodos) en unidades llamadas <strong>objetos</strong>. Una clase es el molde; un objeto es la instancia creada a partir de ese molde.</p>
-<h2>Clases y objetos</h2>
-<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">Persona</span>:
-    <span class="c-cm"># Constructor: se llama al crear un objeto</span>
-    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, nombre, edad):
-        <span class="c-kw">self</span>.nombre = nombre  <span class="c-cm"># atributo</span>
-        <span class="c-kw">self</span>.edad = edad
-
-    <span class="c-kw">def</span> <span class="c-fn">presentarse</span>(<span class="c-kw">self</span>):  <span class="c-cm"># método</span>
-        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Soy {self.nombre}, {self.edad} años"</span>)
-
-    <span class="c-kw">def</span> <span class="c-fn">__str__</span>(<span class="c-kw">self</span>):  <span class="c-cm"># representación en string</span>
-        <span class="c-kw">return</span> <span class="c-fn">f</span><span class="c-str">"Persona({self.nombre})"</span>
-
-<span class="c-cm"># Crear objetos</span>
-p1 = <span class="c-cls">Persona</span>(<span class="c-str">"Ana"</span>, <span class="c-num">25</span>)
-p2 = <span class="c-cls">Persona</span>(<span class="c-str">"Luis"</span>, <span class="c-num">30</span>)
-p1.presentarse()</div>
-<h2>Herencia</h2>
-<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">Animal</span>:
-    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, nombre):
-        <span class="c-kw">self</span>.nombre = nombre
-    <span class="c-kw">def</span> <span class="c-fn">hablar</span>(<span class="c-kw">self</span>):
-        <span class="c-fn">print</span>(<span class="c-str">"..."</span>)
-
-<span class="c-kw">class</span> <span class="c-cls">Perro</span>(<span class="c-cls">Animal</span>):  <span class="c-cm"># hereda de Animal</span>
-    <span class="c-kw">def</span> <span class="c-fn">hablar</span>(<span class="c-kw">self</span>):       <span class="c-cm"># sobreescribe</span>
-        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"¡Guau! Soy {self.nombre}"</span>)
-
-<span class="c-kw">class</span> <span class="c-cls">Gato</span>(<span class="c-cls">Animal</span>):
-    <span class="c-kw">def</span> <span class="c-fn">hablar</span>(<span class="c-kw">self</span>):
-        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Miau~ soy {self.nombre}"</span>)
-
-animales = [<span class="c-cls">Perro</span>(<span class="c-str">"Rex"</span>), <span class="c-cls">Gato</span>(<span class="c-str">"Luna"</span>)]
-<span class="c-kw">for</span> a <span class="c-kw">in</span> animales:
-    a.hablar()  <span class="c-cm"># polimorfismo</span></div>
-<h2>Encapsulamiento</h2>
-<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">CuentaBancaria</span>:
-    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, saldo):
-        <span class="c-kw">self</span>.__saldo = saldo  <span class="c-cm"># __ = privado</span>
-
-    <span class="c-kw">def</span> <span class="c-fn">depositar</span>(<span class="c-kw">self</span>, monto):
-        <span class="c-kw">if</span> monto > <span class="c-num">0</span>:
-            <span class="c-kw">self</span>.__saldo += monto
-
-    <span class="c-kw">def</span> <span class="c-fn">ver_saldo</span>(<span class="c-kw">self</span>):
-        <span class="c-kw">return</span> <span class="c-kw">self</span>.__saldo</div>
-<div class="tip-box">Los cuatro pilares de la POO que toda entrevista pregunta: <strong>Encapsulamiento</strong> (datos privados), <strong>Herencia</strong> (reutilizar código), <strong>Polimorfismo</strong> (mismo método, distintos comportamientos), <strong>Abstracción</strong> (ocultar complejidad).</div>
-`
-  },
+    html:`<h1>POO</h1><p class="subtitle">El paradigma que domina el desarrollo profesional.</p><h2>Clases</h2><div class="code-block"><span class="c-kw">class</span> <span class="c-cls">Persona</span>:<br>    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(<span class="c-kw">self</span>, nombre):<br>        <span class="c-kw">self</span>.nombre = nombre<br>    <span class="c-kw">def</span> <span class="c-fn">saludar</span>(<span class="c-kw">self</span>):<br>        <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Hola soy {self.nombre}"</span>)</div><div class="tip-box">Los 4 pilares: Encapsulamiento, Herencia, Polimorfismo, Abstracción.</div>`},
   { id:'errores', cat:'🛡️ Errores', catId:'errs', title:'Manejo de Errores',
-    html:`
-<h1>Manejo de Errores</h1>
-<p class="subtitle">El código profesional no se rompe — anticipa y maneja lo inesperado.</p>
-<h2>try / except / finally</h2>
-<div class="code-block"><span class="c-kw">try</span>:
-    resultado = <span class="c-num">10</span> / <span class="c-num">0</span>
-<span class="c-kw">except</span> <span class="c-cls">ZeroDivisionError</span>:
-    <span class="c-fn">print</span>(<span class="c-str">"División por cero"</span>)
-<span class="c-kw">except</span> <span class="c-cls">ValueError</span> <span class="c-kw">as</span> e:
-    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Error de valor: {e}"</span>)
-<span class="c-kw">except</span> <span class="c-cls">Exception</span> <span class="c-kw">as</span> e:
-    <span class="c-fn">print</span>(<span class="c-fn">f</span><span class="c-str">"Error genérico: {e}"</span>)
-<span class="c-kw">else</span>:
-    <span class="c-fn">print</span>(<span class="c-str">"Todo bien!"</span>)  <span class="c-cm"># si no hubo error</span>
-<span class="c-kw">finally</span>:
-    <span class="c-fn">print</span>(<span class="c-str">"Siempre se ejecuta"</span>)</div>
-<h2>Errores comunes en Python</h2>
-<ul>
-  <li><strong>SyntaxError:</strong> Error en la sintaxis del código.</li>
-  <li><strong>NameError:</strong> Variable no definida.</li>
-  <li><strong>TypeError:</strong> Operación entre tipos incompatibles.</li>
-  <li><strong>IndexError:</strong> Índice fuera de rango en lista.</li>
-  <li><strong>KeyError:</strong> Clave no existe en diccionario.</li>
-  <li><strong>ValueError:</strong> Valor incorrecto para el tipo.</li>
-  <li><strong>ZeroDivisionError:</strong> División por cero.</li>
-  <li><strong>FileNotFoundError:</strong> Archivo no existe.</li>
-</ul>
-<h2>Crear tus propios errores</h2>
-<div class="code-block"><span class="c-kw">class</span> <span class="c-cls">EdadInvalidaError</span>(<span class="c-cls">Exception</span>):
-    <span class="c-kw">pass</span>
-
-<span class="c-kw">def</span> <span class="c-fn">validar_edad</span>(edad):
-    <span class="c-kw">if</span> edad < <span class="c-num">0</span> <span class="c-kw">or</span> edad > <span class="c-num">150</span>:
-        <span class="c-kw">raise</span> <span class="c-cls">EdadInvalidaError</span>(<span class="c-fn">f</span><span class="c-str">"Edad {edad} inválida"</span>)
-    <span class="c-kw">return</span> <span class="c-kw">True</span>
-
-<span class="c-kw">try</span>:
-    validar_edad(<span class="c-num">-5</span>)
-<span class="c-kw">except</span> <span class="c-cls">EdadInvalidaError</span> <span class="c-kw">as</span> e:
-    <span class="c-fn">print</span>(e)</div>
-`
-  },
+    html:`<h1>Manejo de Errores</h1><p class="subtitle">El código profesional anticipa lo inesperado.</p><div class="code-block"><span class="c-kw">try</span>:<br>    resultado = <span class="c-num">10</span> / <span class="c-num">0</span><br><span class="c-kw">except</span> <span class="c-cls">ZeroDivisionError</span>:<br>    <span class="c-fn">print</span>(<span class="c-str">"División por cero"</span>)<br><span class="c-kw">finally</span>:<br>    <span class="c-fn">print</span>(<span class="c-str">"Siempre se ejecuta"</span>)</div>`},
   { id:'git', cat:'🔧 Herramientas', catId:'tools', title:'Git y GitHub',
-    html:`
-<h1>Git y GitHub</h1>
-<p class="subtitle">La habilidad no negociable. Sin Git no hay trabajo en equipo — y no hay trabajo.</p>
-<h2>¿Qué es Git?</h2>
-<p>Git es un sistema de <strong>control de versiones distribuido</strong>. Registra cada cambio en tu código, te permite volver atrás, y colaborar con otros sin pisar el trabajo del resto.</p>
-<h2>Comandos esenciales</h2>
-<div class="code-block"><span class="c-cm"># Configuración inicial</span>
-git config --global user.name <span class="c-str">"Tu Nombre"</span>
-git config --global user.email <span class="c-str">"tu@email.com"</span>
-
-<span class="c-cm"># Flujo básico</span>
-git init                    <span class="c-cm"># iniciar repo</span>
-git status                  <span class="c-cm"># ver qué cambió</span>
-git add .                   <span class="c-cm"># agregar todos los cambios</span>
-git add archivo.py          <span class="c-cm"># agregar un archivo específico</span>
-git commit -m <span class="c-str">"mensaje"</span>     <span class="c-cm"># guardar snapshot</span>
-git log --oneline           <span class="c-cm"># ver historial</span></div>
-<h2>Branches (ramas)</h2>
-<div class="code-block">git branch                  <span class="c-cm"># ver ramas</span>
-git branch feature/login    <span class="c-cm"># crear rama</span>
-git checkout feature/login  <span class="c-cm"># cambiar a rama</span>
-git checkout -b nueva-rama  <span class="c-cm"># crear y cambiar</span>
-git merge feature/login     <span class="c-cm"># unir rama al main</span></div>
-<h2>GitHub</h2>
-<div class="code-block"><span class="c-cm"># Conectar con GitHub</span>
-git remote add origin https://github.com/user/repo.git
-git push -u origin main     <span class="c-cm"># subir al repo</span>
-git pull origin main        <span class="c-cm"># bajar cambios</span>
-git clone URL               <span class="c-cm"># clonar repo existente</span></div>
-<div class="tip-box">Un buen mensaje de commit sigue el formato: <code>tipo: descripción breve</code>. Ejemplos: <code>feat: agregar login de usuarios</code>, <code>fix: corregir error en validación</code>, <code>docs: actualizar README</code>.</div>
-<h2>El .gitignore</h2>
-<p>Archivo que le dice a Git qué ignorar (no subir al repo).</p>
-<div class="code-block"><span class="c-cm"># .gitignore típico para Python</span>
-__pycache__/
-*.pyc
-.env
-venv/
-.DS_Store</div>
-`
-  },
-  { id:'venvs', cat:'🔧 Herramientas', catId:'tools', title:'Entornos Virtuales',
-    html:`
-<h1>Entornos Virtuales</h1>
-<p class="subtitle">Cada proyecto vive en su propio mundo — sin conflictos de dependencias.</p>
-<h2>¿Por qué necesitás venv?</h2>
-<p>Imaginá que el proyecto A necesita Django 3.2 y el proyecto B necesita Django 4.2. Sin entornos virtuales, uno rompe al otro. Con <code>venv</code>, cada proyecto tiene sus propias librerías aisladas.</p>
-<h2>Crear y activar</h2>
-<div class="code-block"><span class="c-cm"># Crear entorno virtual</span>
-python -m venv venv
-
-<span class="c-cm"># Activar en Linux/Mac</span>
-source venv/bin/activate
-
-<span class="c-cm"># Activar en Windows</span>
-venv\\Scripts\\activate
-
-<span class="c-cm"># Desactivar</span>
-deactivate</div>
-<h2>pip — gestor de paquetes</h2>
-<div class="code-block"><span class="c-cm"># Instalar librería</span>
-pip install requests
-
-<span class="c-cm"># Instalar versión específica</span>
-pip install django==4.2
-
-<span class="c-cm"># Ver instaladas</span>
-pip list
-
-<span class="c-cm"># Guardar dependencias</span>
-pip freeze > requirements.txt
-
-<span class="c-cm"># Instalar desde requirements</span>
-pip install -r requirements.txt</div>
-<div class="tip-box">Siempre incluí <code>venv/</code> en tu <code>.gitignore</code>. Los demás developers instalarán las dependencias con <code>pip install -r requirements.txt</code> en su propio entorno.</div>
-`
-  },
-  { id:'fastapi-intro', cat:'🌐 Backend', catId:'backend', title:'FastAPI — APIs modernas',
-    html:`
-<h1>FastAPI</h1>
-<p class="subtitle">El framework más moderno y demandado para construir APIs con Python.</p>
-<h2>¿Por qué FastAPI?</h2>
-<ul>
-  <li><strong>Rápido:</strong> Comparable a Node.js y Go en rendimiento.</li>
-  <li><strong>Documentación automática:</strong> Genera Swagger UI al instante.</li>
-  <li><strong>Type hints:</strong> Validación automática con Pydantic.</li>
-  <li><strong>Async nativo:</strong> Soporta programación asíncrona.</li>
-</ul>
-<h2>Instalación y primer endpoint</h2>
-<div class="code-block">pip install fastapi uvicorn</div>
-<div class="code-block"><span class="c-cm"># main.py</span>
-<span class="c-kw">from</span> fastapi <span class="c-kw">import</span> FastAPI
-
-app = <span class="c-cls">FastAPI</span>()
-
-<span class="c-kw">@</span>app.get(<span class="c-str">"/"</span>)
-<span class="c-kw">def</span> <span class="c-fn">inicio</span>():
-    <span class="c-kw">return</span> {<span class="c-str">"mensaje"</span>: <span class="c-str">"¡Hola desde la API!"</span>}
-
-<span class="c-kw">@</span>app.get(<span class="c-str">"/usuarios/{id}"</span>)
-<span class="c-kw">def</span> <span class="c-fn">obtener_usuario</span>(id: <span class="c-fn">int</span>):
-    <span class="c-kw">return</span> {<span class="c-str">"id"</span>: id, <span class="c-str">"nombre"</span>: <span class="c-str">"Ana"</span>}
-
-<span class="c-cm"># Ejecutar: uvicorn main:app --reload</span></div>
-<h2>CRUD completo</h2>
-<div class="code-block"><span class="c-kw">from</span> fastapi <span class="c-kw">import</span> FastAPI, HTTPException
-<span class="c-kw">from</span> pydantic <span class="c-kw">import</span> BaseModel
-
-app = <span class="c-cls">FastAPI</span>()
-db = []  <span class="c-cm"># simulación de base de datos</span>
-
-<span class="c-kw">class</span> <span class="c-cls">Tarea</span>(<span class="c-cls">BaseModel</span>):
-    titulo: <span class="c-fn">str</span>
-    completada: <span class="c-fn">bool</span> = <span class="c-kw">False</span>
-
-<span class="c-kw">@</span>app.get(<span class="c-str">"/tareas"</span>)          <span class="c-cm"># GET — listar</span>
-<span class="c-kw">def</span> <span class="c-fn">listar</span>(): <span class="c-kw">return</span> db
-
-<span class="c-kw">@</span>app.post(<span class="c-str">"/tareas"</span>)         <span class="c-cm"># POST — crear</span>
-<span class="c-kw">def</span> <span class="c-fn">crear</span>(tarea: <span class="c-cls">Tarea</span>):
-    db.append(tarea)
-    <span class="c-kw">return</span> tarea
-
-<span class="c-kw">@</span>app.delete(<span class="c-str">"/tareas/{i}"</span>)   <span class="c-cm"># DELETE — borrar</span>
-<span class="c-kw">def</span> <span class="c-fn">borrar</span>(i: <span class="c-fn">int</span>):
-    <span class="c-kw">if</span> i >= <span class="c-fn">len</span>(db):
-        <span class="c-kw">raise</span> <span class="c-cls">HTTPException</span>(<span class="c-num">404</span>, <span class="c-str">"No encontrada"</span>)
-    <span class="c-kw">return</span> db.pop(i)</div>
-<div class="tip-box">Al correr tu app, FastAPI genera documentación interactiva automáticamente en <code>http://localhost:8000/docs</code>. Podés probar todos tus endpoints sin Postman.</div>
-`
-  },
-  { id:'sql-intro', cat:'🗄️ Bases de datos', catId:'db', title:'SQL con Python',
-    html:`
-<h1>Bases de Datos SQL</h1>
-<p class="subtitle">Casi toda aplicación necesita guardar datos. SQL es el idioma para hablar con esa base.</p>
-<h2>Conceptos clave</h2>
-<ul>
-  <li><strong>Tabla:</strong> Como una hoja de cálculo — filas y columnas.</li>
-  <li><strong>Fila/Registro:</strong> Un elemento en la tabla.</li>
-  <li><strong>Columna/Campo:</strong> Un atributo del registro.</li>
-  <li><strong>Primary Key:</strong> Identificador único por fila.</li>
-  <li><strong>Foreign Key:</strong> Referencia a otra tabla.</li>
-</ul>
-<h2>SQL básico</h2>
-<div class="code-block"><span class="c-cm">-- Crear tabla</span>
-CREATE TABLE usuarios (
-    id INTEGER PRIMARY KEY,
-    nombre TEXT NOT NULL,
-    email TEXT UNIQUE,
-    edad INTEGER
-);
-
-<span class="c-cm">-- Insertar</span>
-INSERT INTO usuarios (nombre, email, edad)
-VALUES ('Ana', 'ana@mail.com', 25);
-
-<span class="c-cm">-- Consultar</span>
-SELECT * FROM usuarios;
-SELECT nombre, edad FROM usuarios WHERE edad > 18;
-SELECT * FROM usuarios ORDER BY nombre ASC;
-
-<span class="c-cm">-- Actualizar</span>
-UPDATE usuarios SET edad = 26 WHERE email = 'ana@mail.com';
-
-<span class="c-cm">-- Eliminar</span>
-DELETE FROM usuarios WHERE id = 1;</div>
-<h2>Python + SQLite</h2>
-<div class="code-block"><span class="c-kw">import</span> sqlite3
-
-<span class="c-cm"># Conectar (crea el archivo si no existe)</span>
-conn = sqlite3.connect(<span class="c-str">"mi_db.sqlite"</span>)
-cursor = conn.cursor()
-
-<span class="c-cm"># Crear tabla</span>
-cursor.execute(<span class="c-str">"""
-    CREATE TABLE IF NOT EXISTS productos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        precio REAL
-    )
-"""</span>)
-
-<span class="c-cm"># Insertar</span>
-cursor.execute(<span class="c-str">"INSERT INTO productos (nombre, precio) VALUES (?, ?)"</span>,
-               (<span class="c-str">"Manzana"</span>, <span class="c-num">1.50</span>))
-conn.commit()
-
-<span class="c-cm"># Consultar</span>
-cursor.execute(<span class="c-str">"SELECT * FROM productos"</span>)
-productos = cursor.fetchall()
-<span class="c-fn">print</span>(productos)
-
-conn.close()</div>
-<div class="tip-box">Para proyectos reales usá <strong>PostgreSQL</strong> (más potente) y <strong>SQLAlchemy</strong> como ORM para interactuar con la base sin escribir SQL crudo.</div>
-`
-  },
-  { id:'testing', cat:'✅ Calidad', catId:'quality', title:'Testing con pytest',
-    html:`
-<h1>Testing con pytest</h1>
-<p class="subtitle">El código sin tests es código que eventualmente va a romperse en producción.</p>
-<h2>¿Por qué testear?</h2>
-<p>Los tests automáticos verifican que tu código funciona correctamente — y siguen verificándolo cada vez que hacés un cambio. Sin tests, cada deploy es una apuesta.</p>
-<h2>Instalación</h2>
-<div class="code-block">pip install pytest</div>
-<h2>Tu primer test</h2>
-<div class="code-block"><span class="c-cm"># calculadora.py</span>
-<span class="c-kw">def</span> <span class="c-fn">sumar</span>(a, b):
-    <span class="c-kw">return</span> a + b
-
-<span class="c-kw">def</span> <span class="c-fn">dividir</span>(a, b):
-    <span class="c-kw">if</span> b == <span class="c-num">0</span>:
-        <span class="c-kw">raise</span> <span class="c-cls">ValueError</span>(<span class="c-str">"No se puede dividir por cero"</span>)
-    <span class="c-kw">return</span> a / b</div>
-<div class="code-block"><span class="c-cm"># test_calculadora.py</span>
-<span class="c-kw">from</span> calculadora <span class="c-kw">import</span> sumar, dividir
-<span class="c-kw">import</span> pytest
-
-<span class="c-kw">def</span> <span class="c-fn">test_sumar_positivos</span>():
-    <span class="c-kw">assert</span> sumar(<span class="c-num">2</span>, <span class="c-num">3</span>) == <span class="c-num">5</span>
-
-<span class="c-kw">def</span> <span class="c-fn">test_sumar_negativos</span>():
-    <span class="c-kw">assert</span> sumar(-<span class="c-num">1</span>, -<span class="c-num">1</span>) == -<span class="c-num">2</span>
-
-<span class="c-kw">def</span> <span class="c-fn">test_dividir_por_cero</span>():
-    <span class="c-kw">with</span> pytest.raises(<span class="c-cls">ValueError</span>):
-        dividir(<span class="c-num">10</span>, <span class="c-num">0</span>)</div>
-<div class="code-block"><span class="c-cm"># Ejecutar tests</span>
-pytest                    <span class="c-cm"># todos los tests</span>
-pytest -v                 <span class="c-cm"># verbose (más detalle)</span>
-pytest test_calculadora.py <span class="c-cm"># archivo específico</span></div>
-<div class="tip-box">Nombrá tus archivos de test como <code>test_*.py</code> y tus funciones de test como <code>def test_*()</code>. pytest los detecta automáticamente.</div>
-`
-  }
+    html:`<h1>Git y GitHub</h1><p class="subtitle">Sin Git no hay trabajo en equipo.</p><div class="code-block">git init<br>git add .<br>git commit -m <span class="c-str">"mensaje"</span><br>git push origin main</div><div class="tip-box">Un buen commit: tipo: descripción. Ej: feat: agregar login</div>`},
+  { id:'fastapi-intro', cat:'🌐 Backend', catId:'backend', title:'FastAPI',
+    html:`<h1>FastAPI</h1><p class="subtitle">El framework más moderno para APIs con Python.</p><div class="code-block"><span class="c-kw">from</span> fastapi <span class="c-kw">import</span> FastAPI<br>app = FastAPI()<br><span class="c-kw">@</span>app.get(<span class="c-str">"/"</span>)<br><span class="c-kw">def</span> <span class="c-fn">inicio</span>():<br>    <span class="c-kw">return</span> {<span class="c-str">"mensaje"</span>: <span class="c-str">"Hola!"</span>}</div><div class="tip-box">Documentación automática en /docs al correr la app.</div>`}
 ];
 
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
+// ══ STATE ══
 let state = {
   currentLesson: null,
   completed: JSON.parse(localStorage.getItem('pq_done')||'[]'),
@@ -1362,8 +1237,7 @@ let state = {
   streak: parseInt(localStorage.getItem('pq_streak')||'0'),
   lastDay: localStorage.getItem('pq_lastday')||'',
   roadmapDone: JSON.parse(localStorage.getItem('pq_rmdone')||'[]'),
-  chAiHist: [],
-  libAiHist: []
+  chAiHist: [], libAiHist: []
 };
 function save(){
   localStorage.setItem('pq_done',JSON.stringify(state.completed));
@@ -1372,13 +1246,10 @@ function save(){
   localStorage.setItem('pq_streak',state.streak);
   localStorage.setItem('pq_lastday',state.lastDay);
   localStorage.setItem('pq_rmdone',JSON.stringify(state.roadmapDone));
-  // Also save to cloud if logged in
-  if (window._saveToCloud) window._saveToCloud();
+  if(window._saveToCloud) window._saveToCloud();
 }
 
-// ══════════════════════════════════════════
-//  PYODIDE
-// ══════════════════════════════════════════
+// ══ PYODIDE ══
 let pyodide=null, pyReady=false;
 async function loadPy(){
   try{
@@ -1389,9 +1260,7 @@ async function loadPy(){
     pyReady=true;
     document.getElementById('pyodide-bar').classList.add('hidden');
     const b=document.getElementById('py-badge');
-    b.textContent='⬤ Python activo';
-    b.style.color='var(--green)';
-    b.style.borderColor='rgba(74,222,128,0.3)';
+    b.textContent='⬤ Python activo';b.style.color='var(--green)';b.style.borderColor='rgba(74,222,128,0.3)';
   }catch(e){
     document.getElementById('py-txt').textContent='Modo simulado activo';
     setTimeout(()=>document.getElementById('pyodide-bar').classList.add('hidden'),3000);
@@ -1410,9 +1279,7 @@ async function execPy(code){
   }
 }
 
-// ══════════════════════════════════════════
-//  CODEMIRROR
-// ══════════════════════════════════════════
+// ══ CODEMIRROR ══
 let editor=null;
 function initCM(){
   const host=document.getElementById('cm-host');
@@ -1420,23 +1287,17 @@ function initCM(){
   const ta=document.createElement('textarea');
   host.appendChild(ta);
   editor=CodeMirror.fromTextArea(ta,{
-    mode:'python',theme:'material-darker',
-    lineNumbers:true,matchBrackets:true,autoCloseBrackets:true,
+    mode:'python',theme:'material-darker',lineNumbers:true,
+    matchBrackets:true,autoCloseBrackets:true,
     indentUnit:4,tabSize:4,indentWithTabs:false,
-    extraKeys:{
-      'Tab':cm=>cm.replaceSelection('    '),
-      'Ctrl-Enter':()=>runCode(),
-      'Cmd-Enter':()=>runCode()
-    }
+    extraKeys:{'Tab':cm=>cm.replaceSelection('    '),'Ctrl-Enter':()=>runCode(),'Cmd-Enter':()=>runCode()}
   });
   editor.setSize('100%','100%');
 }
 const getCode=()=>editor?editor.getValue():'';
 const setCode=c=>{if(editor){editor.setValue(c);editor.clearHistory();editor.focus();}};
 
-// ══════════════════════════════════════════
-//  VIEWS
-// ══════════════════════════════════════════
+// ══ VIEWS ══
 let currentView='challenges';
 function showView(v){
   currentView=v;
@@ -1449,9 +1310,7 @@ function showView(v){
   if(v==='roadmap') renderRoadmap();
 }
 
-// ══════════════════════════════════════════
-//  LIVES & STREAK
-// ══════════════════════════════════════════
+// ══ LIVES & STREAK ══
 function renderLives(){
   for(let i=1;i<=3;i++) document.getElementById('h'+i).classList.toggle('lost',i>state.lives);
 }
@@ -1460,7 +1319,7 @@ function loseLife(){
   state.lives--;save();renderLives();
   const f=document.getElementById('life-flash');
   f.classList.add('show');setTimeout(()=>f.classList.remove('show'),600);
-  const lr=document.getElementById('lives-row')||document.querySelector('.lives-row');
+  const lr=document.querySelector('.lives-row');
   if(lr){lr.classList.add('shake');setTimeout(()=>lr.classList.remove('shake'),350);}
   if(state.lives===0)setTimeout(()=>{
     document.getElementById('go-pts').textContent=state.points+' pts';
@@ -1475,15 +1334,12 @@ function updateStreak(){
   else if(state.lastDay===yest){state.streak++;state.lastDay=today;}
   else{state.streak=1;state.lastDay=today;}
   save();
-  const el=document.getElementById('streak-hud');
   document.getElementById('streak-val').textContent=state.streak+'d';
-  if(state.streak>=2)el.classList.add('streak-active');
+  if(state.streak>=2)document.getElementById('streak-hud').classList.add('streak-active');
 }
 function updatePts(){document.getElementById('pts-hud').textContent=state.points+' pts';}
 
-// ══════════════════════════════════════════
-//  SIDEBAR DESAFÍOS
-// ══════════════════════════════════════════
+// ══ SIDEBAR ══
 function buildSidebar(){
   const list=document.getElementById('module-list');
   list.innerHTML='';
@@ -1503,12 +1359,29 @@ function buildSidebar(){
   const total=CURRICULUM.reduce((s,m)=>s+m.lessons.length,0);
   document.getElementById('global-pbar').style.width=(state.completed.length/total*100)+'%';
 }
-
 function loadLessonById(id){
   for(const m of CURRICULUM)for(const l of m.lessons)if(l.id===id){loadLesson(l);return;}
 }
+
+// ══ THEORY RENDER ══
+function renderTheory(lesson){
+  const t = lesson.theory;
+  if(!t){ document.getElementById('theory-section').style.display='none'; return; }
+  document.getElementById('theory-section').style.display='';
+  document.getElementById('theory-badge').textContent = lesson.topic.toUpperCase();
+  document.getElementById('theory-topic').textContent = lesson.topic;
+  document.getElementById('theory-title').textContent = t.title;
+  document.getElementById('theory-why').innerHTML = t.why;
+  document.getElementById('theory-syntax').innerHTML = t.syntax;
+  document.getElementById('theory-rw-items').innerHTML = t.realworld
+    .map(r=>`<div class="theory-rw-item">${r}</div>`).join('');
+  document.getElementById('theory-tip-text').textContent = t.tip;
+}
+
+// ══ LOAD LESSON ══
 function loadLesson(lesson){
   state.currentLesson=lesson;
+  renderTheory(lesson);
   document.getElementById('ch-kyu').textContent=lesson.kyu+' · '+lesson.pts+' pts';
   document.getElementById('ch-title').textContent=lesson.title;
   document.getElementById('ch-desc').innerHTML=lesson.task;
@@ -1524,14 +1397,12 @@ function loadLesson(lesson){
   document.querySelectorAll('.lesson-item').forEach(e=>e.classList.remove('active'));
   const li=document.getElementById('li-'+lesson.id);
   if(li&&!li.classList.contains('done'))li.classList.add('active');
-  addMsg('ai-msgs-ch','ai',`**${lesson.title}** cargado.\nTema: *${lesson.topic}*. ¡A codear! 💪`);
+  addMsg('ai-msgs-ch','ai',`**${lesson.title}** cargado 📖\n\nLeé la teoría de arriba primero — explica *${lesson.topic}* con ejemplos reales. Después encarás el desafío. ¡Cualquier duda me preguntás!`);
   setTimeout(()=>editor&&editor.refresh(),80);
 }
 function resetCode(){if(state.currentLesson)setCode(state.currentLesson.starter);}
 
-// ══════════════════════════════════════════
-//  OUTPUT
-// ══════════════════════════════════════════
+// ══ OUTPUT ══
 function setDot(s){
   const d=document.getElementById('out-dot');
   d.className='out-dot'+(s==='idle'?'':s==='running'?' running':s==='pass'?' pass':' fail');
@@ -1546,10 +1417,10 @@ async function runCode(){
   setDot('running');
   document.getElementById('out-status').textContent='Ejecutando...';
   document.getElementById('exec-t').textContent='';
-  setOut([{t:'$ python '+( state.currentLesson?.id||'script')+'.py',c:'oi'}]);
+  setOut([{t:'$ python '+(state.currentLesson?.id||'script')+'.py',c:'oi'}]);
   const t0=performance.now();
   if(!pyReady){
-    setOut([{t:'⚠ Python cargando — salida simulada',c:'ow'}]);
+    setOut([{t:'⚠ Python cargando — esperá un momento',c:'ow'}]);
     setDot('idle');return;
   }
   const r=await execPy(code);
@@ -1600,9 +1471,7 @@ function autoAdvance(){
   }
 }
 
-// ══════════════════════════════════════════
-//  BIBLIOTECA
-// ══════════════════════════════════════════
+// ══ BIBLIOTECA ══
 function renderLibraryNav(){
   const nav=document.getElementById('lib-nav');
   if(nav.innerHTML)return;
@@ -1627,146 +1496,47 @@ function loadTopic(id){
   document.getElementById('lib-content').innerHTML=t.html;
 }
 
-// ══════════════════════════════════════════
-//  ROADMAP
-// ══════════════════════════════════════════
+// ══ ROADMAP ══
 const PHASES=[
-  {id:'p1',cls:'p1',num:'FASE 01',title:'Fundamentos Python',period:'Meses 1 – 3',
-   topics:[
-    {main:'Sintaxis y tipos de datos',sub:'Variables, strings, int, float, bool, None'},
-    {main:'Estructuras de datos',sub:'Listas, diccionarios, tuplas, sets — y cuándo usar cada una'},
-    {main:'Control de flujo',sub:'if/elif/else, for, while, break, continue'},
-    {main:'Funciones',sub:'def, parámetros, return, *args, **kwargs, lambda, scope'},
-    {main:'POO',sub:'Clases, objetos, herencia, polimorfismo, encapsulamiento'},
-    {main:'Manejo de errores',sub:'try/except/finally, raise, errores custom'}
-   ]},
-  {id:'p2',cls:'p2',num:'FASE 02',title:'Herramientas Reales',period:'Meses 4 – 5',
-   topics:[
-    {main:'Git y GitHub',sub:'commits, branches, pull requests, merge, .gitignore'},
-    {main:'Entornos virtuales',sub:'venv, pip, requirements.txt, poetry (opcional)'},
-    {main:'Terminal/Bash',sub:'Navegación, variables de entorno, scripts básicos'},
-    {main:'VS Code + extensiones',sub:'Python extension, Pylance, Black formatter, GitHub Copilot'},
-    {main:'Docstrings y type hints',sub:'Documentación del código, tipado estático básico'}
-   ]},
-  {id:'p3',cls:'p3',num:'FASE 03',title:'Bases de Datos',period:'Meses 6 – 8',
-   topics:[
-    {main:'SQL fundamental',sub:'SELECT, INSERT, UPDATE, DELETE, JOINs, índices'},
-    {main:'PostgreSQL',sub:'Instalación, psycopg2, transacciones, relaciones'},
-    {main:'SQLAlchemy',sub:'ORM: modelos, sessions, queries, migraciones con Alembic'},
-    {main:'MongoDB basics',sub:'Documentos, colecciones, PyMongo, operaciones CRUD'},
-    {main:'Redis (básico)',sub:'Cache en memoria, conceptos de clave-valor'}
-   ]},
-  {id:'p4',cls:'p4',num:'FASE 04',title:'Backend y APIs',period:'Meses 9 – 14',
-   topics:[
-    {main:'FastAPI',sub:'Endpoints, Pydantic, validación, documentación automática'},
-    {main:'APIs RESTful',sub:'GET/POST/PUT/DELETE, JSON, status codes, autenticación JWT'},
-    {main:'Django (alternativa)',sub:'MVT, ORM nativo, admin, formularios, Django REST'},
-    {main:'Autenticación',sub:'JWT, OAuth2, bcrypt, sesiones, permisos'},
-    {main:'APIs de terceros',sub:'requests, httpx, async, integración con servicios externos'},
-    {main:'asyncio y concurrencia',sub:'async/await, tareas en paralelo, optimización de recursos'}
-   ]},
-  {id:'p5',cls:'p5',num:'FASE 05',title:'Calidad y Despliegue',period:'Meses 15 – 18',
-   topics:[
-    {main:'Testing',sub:'pytest, tests unitarios, tests de integración, cobertura de código'},
-    {main:'Principios SOLID',sub:'Single responsibility, DRY, código limpio, refactoring'},
-    {main:'Docker',sub:'Contenedores, Dockerfile, docker-compose, imágenes'},
-    {main:'CI/CD básico',sub:'GitHub Actions, despliegue automático, variables de entorno'},
-    {main:'Cloud deployment',sub:'Render, Railway, AWS EC2/Lambda, Google Cloud Run (básico)'}
-   ]},
-  {id:'p6',cls:'p6',num:'FASE 06',title:'Portafolio y Trabajo',period:'Año 2',full:true,
-   topics:[
-    {main:'Proyecto 1 — API de e-commerce',sub:'FastAPI + PostgreSQL + JWT + Docker. CRUD completo, carrito, órdenes.'},
-    {main:'Proyecto 2 — Bot/Automatización',sub:'Script complejo: scraping, procesamiento de datos, envío de reportes.'},
-    {main:'Proyecto 3 — App con IA integrada',sub:'Backend Python + LLM API (Claude/OpenAI) + base de datos + deploy.'},
-    {main:'LinkedIn y GitHub activo',sub:'README bonitos, contribuciones visibles, presencia profesional.'},
-    {main:'English técnico',sub:'Leer docs, entrevistas en inglés, comunicación remota — tan importante como el código.'}
-   ]}
+  {id:'p1',cls:'p1',num:'FASE 01',title:'Fundamentos Python',period:'Meses 1 – 3',topics:[{main:'Sintaxis y tipos',sub:'Variables, strings, int, float, bool'},{main:'Estructuras de datos',sub:'Listas, dicts, tuplas, sets'},{main:'Control de flujo',sub:'if/elif/else, for, while'},{main:'Funciones',sub:'def, return, *args, lambda'},{main:'POO',sub:'Clases, herencia, polimorfismo'},{main:'Errores',sub:'try/except/finally'}]},
+  {id:'p2',cls:'p2',num:'FASE 02',title:'Herramientas Reales',period:'Meses 4 – 5',topics:[{main:'Git y GitHub',sub:'commits, branches, pull requests'},{main:'Entornos virtuales',sub:'venv, pip, requirements.txt'},{main:'Terminal/Bash',sub:'Navegación, scripts básicos'},{main:'VS Code',sub:'Extensiones, debugger, Copilot'},{main:'Type hints',sub:'Tipado estático, documentación'}]},
+  {id:'p3',cls:'p3',num:'FASE 03',title:'Bases de Datos',period:'Meses 6 – 8',topics:[{main:'SQL',sub:'SELECT, JOIN, índices'},{main:'PostgreSQL',sub:'psycopg2, transacciones'},{main:'SQLAlchemy',sub:'ORM, modelos, migraciones'},{main:'MongoDB',sub:'PyMongo, documentos, CRUD'},{main:'Redis',sub:'Cache, clave-valor'}]},
+  {id:'p4',cls:'p4',num:'FASE 04',title:'Backend y APIs',period:'Meses 9 – 14',topics:[{main:'FastAPI',sub:'Endpoints, Pydantic, Swagger'},{main:'REST APIs',sub:'JSON, status codes, JWT'},{main:'Django',sub:'MVT, ORM, admin'},{main:'Autenticación',sub:'JWT, OAuth2, bcrypt'},{main:'Async/await',sub:'Concurrencia, optimización'}]},
+  {id:'p5',cls:'p5',num:'FASE 05',title:'Calidad y Despliegue',period:'Meses 15 – 18',topics:[{main:'Testing',sub:'pytest, cobertura, TDD'},{main:'SOLID',sub:'Principios, código limpio'},{main:'Docker',sub:'Contenedores, docker-compose'},{main:'CI/CD',sub:'GitHub Actions, despliegue automático'},{main:'Cloud',sub:'Render, Railway, AWS básico'}]},
+  {id:'p6',cls:'p6',num:'FASE 06',title:'Portafolio y Trabajo',period:'Año 2',full:true,topics:[{main:'API de e-commerce',sub:'FastAPI + PostgreSQL + JWT + Docker'},{main:'Bot de automatización',sub:'Scraping, procesamiento, reportes'},{main:'App con IA integrada',sub:'Backend + LLM API + deploy real'},{main:'GitHub y LinkedIn activos',sub:'Presencia profesional visible'},{main:'English técnico',sub:'Docs, entrevistas, trabajo remoto'}]}
 ];
-
 const RESOURCES=[
-  {type:'GRATUITO',name:'CS50P — Harvard',desc:'El mejor curso introductorio de Python del mundo. 100% gratis, subtítulos en español.',link:'https://cs50.harvard.edu/python',tag:'Indispensable'},
-  {type:'GRATUITO',name:'roadmap.sh/python',desc:'Mapa visual interactivo del camino completo, con recursos para cada nodo.',link:'https://roadmap.sh/python',tag:'Referencia'},
-  {type:'GRATUITO',name:'Real Python',desc:'Los mejores artículos y tutoriales de Python en internet. Explica temas complejos con claridad.',link:'https://realpython.com',tag:'Profundizar'},
-  {type:'GRATUITO',name:'FreeCodeCamp YouTube',desc:'Cursos de 4-12hs en español e inglés. Python, FastAPI, bases de datos y más.',link:'https://youtube.com/@freecodecamp',tag:'Videos'},
-  {type:'OFICIAL',name:'docs.python.org',desc:'La fuente de la verdad. Aprender a leer la documentación oficial es una habilidad clave.',link:'https://docs.python.org/3',tag:'Referencia'},
-  {type:'PRÁCTICA',name:'Codewars',desc:'Desafíos de lógica y algoritmos. Empezá en 8kyu y subí. Preparación para entrevistas técnicas.',link:'https://codewars.com',tag:'Diario'},
-  {type:'PAGO',name:'Udemy — Angela Yu',desc:'"100 Days of Code" — el bootcamp más práctico. Esperá oferta, baja a ~$10-15.',link:'https://udemy.com',tag:'Completo'},
-  {type:'COMUNIDAD',name:'daily.dev',desc:'Feed de noticias tech configurable. Seguí temas Python, FastAPI, IA. Hábito diario.',link:'https://daily.dev',tag:'Hábito'},
-  {type:'COMUNIDAD',name:'Stack Overflow',desc:'Para cuando estés trabado. Aprender a buscar y preguntar bien es una habilidad profesional.',link:'https://stackoverflow.com',tag:'Resolver dudas'}
+  {type:'GRATUITO',name:'CS50P — Harvard',desc:'El mejor curso introductorio del mundo.',link:'https://cs50.harvard.edu/python',tag:'Indispensable'},
+  {type:'GRATUITO',name:'roadmap.sh/python',desc:'Mapa visual interactivo del camino completo.',link:'https://roadmap.sh/python',tag:'Referencia'},
+  {type:'GRATUITO',name:'Real Python',desc:'Los mejores artículos y tutoriales de Python.',link:'https://realpython.com',tag:'Profundizar'},
+  {type:'GRATUITO',name:'FreeCodeCamp YouTube',desc:'Cursos de 4-12hs. Python, FastAPI, BD y más.',link:'https://youtube.com/@freecodecamp',tag:'Videos'},
+  {type:'OFICIAL',name:'docs.python.org',desc:'La fuente de la verdad.',link:'https://docs.python.org/3',tag:'Referencia'},
+  {type:'PRÁCTICA',name:'Codewars',desc:'Desafíos de lógica. Preparación para entrevistas.',link:'https://codewars.com',tag:'Diario'},
 ];
-
 function renderRoadmap(){
   const wrap=document.getElementById('roadmap-content');
   if(wrap.innerHTML)return;
-  let html=`
-  <div class="roadmap-hero">
-    <h1>🗺️ Ruta: de cero a trabajo en Python</h1>
-    <p>Un plan realista de <strong>1 a 2 años</strong> con constancia. No es teoría: es la estructura exacta que usan los desarrolladores Junior que consiguen trabajo en empresas reales.</p>
-  </div>
+  let html=`<div class="roadmap-hero"><h1>🗺️ Ruta: de cero a trabajo en Python</h1><p>Un plan realista de <strong>1 a 2 años</strong> con constancia.</p></div>
   <div class="phase-grid">
-  ${PHASES.map(p=>`
-    <div class="phase-card ${p.cls}${p.full?' full':''}">
-      <button class="phase-check${state.roadmapDone.includes(p.id)?' done':''}" onclick="togglePhase('${p.id}')" title="Marcar como completado">
-        ${state.roadmapDone.includes(p.id)?'✓':'○'}
-      </button>
-      <div class="phase-num">${p.num}</div>
-      <div class="phase-title">${p.title}</div>
-      <div class="phase-period">⏱ ${p.period}</div>
-      <div class="phase-topics">
-        ${p.topics.map(t=>`<div class="phase-topic"><div class="phase-topic-dot"></div><div><strong>${t.main}</strong>${t.sub}</div></div>`).join('')}
-      </div>
-    </div>`).join('')}
+  ${PHASES.map(p=>`<div class="phase-card ${p.cls}${p.full?' full':''}">
+    <button class="phase-check${state.roadmapDone.includes(p.id)?' done':''}" onclick="togglePhase('${p.id}')">${state.roadmapDone.includes(p.id)?'✓':'○'}</button>
+    <div class="phase-num">${p.num}</div><div class="phase-title">${p.title}</div>
+    <div class="phase-period">⏱ ${p.period}</div>
+    <div class="phase-topics">${p.topics.map(t=>`<div class="phase-topic"><div class="phase-topic-dot"></div><div><strong>${t.main}</strong>${t.sub}</div></div>`).join('')}</div>
+  </div>`).join('')}
   </div>
-  <div class="projects-section">
-    <div class="res-title">🏗️ Proyectos para el portafolio</div>
-    <div class="proj-grid">
-      <div class="proj-card">
-        <div class="proj-num">PROYECTO 01</div>
-        <div class="proj-name">API de Gestión de Tareas</div>
-        <div class="proj-desc">CRUD completo con autenticación JWT, base de datos PostgreSQL, documentación Swagger y tests con pytest. El proyecto "Hello World" de cualquier backend developer.</div>
-        <div class="proj-tech"><span>FastAPI</span><span>PostgreSQL</span><span>JWT</span><span>pytest</span><span>Docker</span></div>
-      </div>
-      <div class="proj-card">
-        <div class="proj-num">PROYECTO 02</div>
-        <div class="proj-name">Bot de Automatización</div>
-        <div class="proj-desc">Script que extrae datos de la web, los procesa y envía un reporte por email o Telegram. Demuestra pensamiento algorítmico y uso de APIs reales.</div>
-        <div class="proj-tech"><span>requests</span><span>BeautifulSoup</span><span>pandas</span><span>schedule</span><span>smtplib</span></div>
-      </div>
-      <div class="proj-card">
-        <div class="proj-num">PROYECTO 03</div>
-        <div class="proj-name">App con IA integrada</div>
-        <div class="proj-desc">Backend Python + integración con un LLM (Claude/OpenAI) + base de datos + deploy en la nube. El proyecto que más impresiona a las empresas hoy en día.</div>
-        <div class="proj-tech"><span>FastAPI</span><span>Claude API</span><span>PostgreSQL</span><span>Docker</span><span>Render</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="resources-section">
-    <div class="res-title">📚 Recursos recomendados</div>
-    <div class="res-grid">
-      ${RESOURCES.map(r=>`
-      <div class="res-card">
-        <div class="res-card-type">${r.type}</div>
-        <div class="res-card-name">${r.name}</div>
-        <div class="res-card-desc">${r.desc}</div>
-        <div class="res-tag">${r.tag}</div>
-        <br><a class="res-card-link" href="${r.link}" target="_blank">→ Visitar</a>
-      </div>`).join('')}
-    </div>
+  <div class="resources-section"><div class="res-title">📚 Recursos recomendados</div>
+  <div class="res-grid">${RESOURCES.map(r=>`<div class="res-card"><div class="res-card-type">${r.type}</div><div class="res-card-name">${r.name}</div><div class="res-card-desc">${r.desc}</div><div class="res-tag">${r.tag}</div><br><a class="res-card-link" href="${r.link}" target="_blank">→ Visitar</a></div>`).join('')}</div>
   </div>`;
   wrap.innerHTML=html;
 }
 function togglePhase(id){
   const idx=state.roadmapDone.indexOf(id);
-  if(idx>=0)state.roadmapDone.splice(idx,1);
-  else state.roadmapDone.push(id);
-  save();
-  document.getElementById('roadmap-content').innerHTML='';
-  renderRoadmap();
+  if(idx>=0)state.roadmapDone.splice(idx,1);else state.roadmapDone.push(id);
+  save();document.getElementById('roadmap-content').innerHTML='';renderRoadmap();
 }
 
-// ══════════════════════════════════════════
-//  AI — shared
-// ══════════════════════════════════════════
+// ══ AI — Anthropic ══
 function addMsg(containerId, role, text){
   const c=document.getElementById(containerId);if(!c)return;
   const d=document.createElement('div');
@@ -1780,24 +1550,26 @@ function typing(containerId){
   d.innerHTML='<span style="color:var(--text-dim);animation:blink 1s infinite;display:inline-block">Escribiendo...</span>';
   c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
 }
+
 async function callAI(system, messages){
-  const GEMINI_KEY = 'AIzaSyAJO4o2GG-hPhU1qLzInFAknofvDbBb2LM';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
-  const r = await fetch(url, {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': '',
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: system }] },
-      contents,
-      generationConfig: { maxOutputTokens: 600, temperature: 0.7 }
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      system: system,
+      messages: messages
     })
   });
   const data = await r.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Error al conectar.';
+  if (!r.ok) throw new Error(data.error?.message || 'API error');
+  return data.content?.[0]?.text || 'Sin respuesta.';
 }
 
 // Challenge AI
@@ -1812,18 +1584,21 @@ async function sendChMsg(override){
   addMsg('ai-msgs-ch','user',text);
   state.chAiHist.push({role:'user',content:text});
   const t=typing('ai-msgs-ch');
-  const sys=`Sos PyBot, tutor de Python. Respondés en español, conciso y práctico.${state.currentLesson?`\nDesafío actual: "${state.currentLesson.title}" (${state.currentLesson.topic}).\nCódigo:\n\`\`\`python\n${getCode()}\n\`\`\``:''}
-Máximo 4 oraciones. Usá backticks para código.`;
+  const lesson = state.currentLesson;
+  const theoryCtx = lesson?.theory ? `\nConcepto enseñado: "${lesson.theory.title}"\nTema: ${lesson.topic}\nExplicación teórica que vio el usuario: ${lesson.theory.why.replace(/<[^>]+>/g,'')}` : '';
+  const sys=`Sos PyBot, tutor de Python de PythonQuest. Respondés en español rioplatense, conciso y práctico.
+${lesson ? `Lección actual: "${lesson.title}"${theoryCtx}\nDesafío: ${lesson.task?.replace(/<[^>]+>/g,'')}\nCódigo del usuario:\n\`\`\`python\n${getCode()}\n\`\`\`` : ''}
+Máximo 4 oraciones. Usá backticks para código. Si el usuario ya vio la teoría, hacé referencia a ella.`;
   try{
     const reply=await callAI(sys,[...state.chAiHist.slice(-10)]);
     t?.remove();addMsg('ai-msgs-ch','ai',reply);
     state.chAiHist.push({role:'assistant',content:reply});
     if(state.chAiHist.length>20)state.chAiHist=state.chAiHist.slice(-20);
-  }catch(e){t?.remove();addMsg('ai-msgs-ch','ai','Error de conexión. Intentá de nuevo.');}
+  }catch(e){t?.remove();addMsg('ai-msgs-ch','ai','Error de conexión. Revisá la consola.');}
 }
 async function getAiFeedback(code,lesson){
   try{
-    const reply=await callAI('Sos PyBot, tutor de Python amigable.',[{role:'user',content:`Usuario completó "${lesson.title}":\n\`\`\`python\n${code}\n\`\`\`\nFeedback breve (2-3 oraciones): felicitalo, algo bueno y algo a explorar.`}]);
+    const reply=await callAI('Sos PyBot, tutor de Python amigable. Respondés en español rioplatense.',[{role:'user',content:`El usuario completó "${lesson.title}" (tema: ${lesson.topic}).\nCódigo:\n\`\`\`python\n${code}\n\`\`\`\nDale feedback en 2-3 oraciones: felicitalo, algo bueno del código y un concepto extra para explorar relacionado con ${lesson.topic}.`}]);
     addMsg('ai-msgs-ch','ai','🎉 '+reply);
   }catch(e){}
 }
@@ -1837,7 +1612,7 @@ async function sendLibMsg(override){
   addMsg('ai-msgs-lib','user',text);
   state.libAiHist.push({role:'user',content:text});
   const t=typing('ai-msgs-lib');
-  const sys=`Sos PyBot, experto en Python. El usuario está estudiando la biblioteca de PythonQuest. Respondés en español, claro y con ejemplos de código cuando corresponde. Máximo 5 oraciones.`;
+  const sys=`Sos PyBot, experto en Python. El usuario estudia la biblioteca de PythonQuest. Respondés en español rioplatense, claro y con ejemplos de código cuando corresponde. Máximo 5 oraciones.`;
   try{
     const reply=await callAI(sys,[...state.libAiHist.slice(-10)]);
     t?.remove();addMsg('ai-msgs-lib','ai',reply);
@@ -1846,9 +1621,7 @@ async function sendLibMsg(override){
   }catch(e){t?.remove();addMsg('ai-msgs-lib','ai','Error de conexión.');}
 }
 
-// ══════════════════════════════════════════
-//  CONFETTI
-// ══════════════════════════════════════════
+// ══ CONFETTI ══
 function confetti(){
   ['#f5a623','#4ade80','#60a5fa','#f87171','#e879f9'].forEach(color=>{
     for(let i=0;i<8;i++){
@@ -1859,100 +1632,67 @@ function confetti(){
   });
 }
 
-// ══════════════════════════════════════════
-//  AUTH
-// ══════════════════════════════════════════
-let authMode = 'register'; // 'register' | 'login'
-
-function openAuthModal() {
-  if (window._fbUser) { showUserMenu(); return; }
-  document.getElementById('auth-modal').classList.add('show');
+// ══ AUTH ══
+let authMode='register';
+function openAuthModal(){if(window._fbUser){showUserMenu();return;}document.getElementById('auth-modal').classList.add('show');}
+function skipAuth(){document.getElementById('auth-modal').classList.remove('show');}
+function toggleAuthMode(){
+  authMode=authMode==='register'?'login':'register';
+  const isReg=authMode==='register';
+  document.getElementById('auth-title').textContent=isReg?'Crear cuenta':'Iniciar sesión';
+  document.getElementById('auth-sub').textContent=isReg?'Guardá tu progreso en la nube.':'Bienvenido de vuelta 👋';
+  document.getElementById('auth-name-field').style.display=isReg?'':'none';
+  document.getElementById('auth-submit-btn').textContent=isReg?'Crear cuenta':'Iniciar sesión';
+  document.getElementById('auth-switch-text').textContent=isReg?'¿Ya tenés cuenta?':'¿No tenés cuenta?';
+  document.querySelector('.auth-switch a').textContent=isReg?' Iniciá sesión':' Registrate';
+  document.getElementById('auth-err').textContent='';
 }
-function skipAuth() {
-  document.getElementById('auth-modal').classList.remove('show');
-}
-function toggleAuthMode() {
-  authMode = authMode === 'register' ? 'login' : 'register';
-  const isReg = authMode === 'register';
-  document.getElementById('auth-title').textContent = isReg ? 'Crear cuenta' : 'Iniciar sesión';
-  document.getElementById('auth-sub').textContent = isReg ? 'Guardá tu progreso en la nube.' : 'Bienvenido de vuelta 👋';
-  document.getElementById('auth-name-field').style.display = isReg ? '' : 'none';
-  document.getElementById('auth-submit-btn').textContent = isReg ? 'Crear cuenta' : 'Iniciar sesión';
-  document.getElementById('auth-switch-text').textContent = isReg ? '¿Ya tenés cuenta?' : '¿No tenés cuenta?';
-  document.querySelector('.auth-switch a').textContent = isReg ? ' Iniciá sesión' : ' Registrate';
-  document.getElementById('auth-err').textContent = '';
-}
-async function submitAuth() {
-  const email = document.getElementById('auth-email').value.trim();
-  const pass = document.getElementById('auth-pass').value;
-  const name = document.getElementById('auth-name').value.trim();
-  const errEl = document.getElementById('auth-err');
-  errEl.textContent = '';
-  if (!email || !pass) { errEl.textContent = 'Completá email y contraseña.'; return; }
-  const btn = document.getElementById('auth-submit-btn');
-  btn.textContent = 'Procesando...'; btn.disabled = true;
-  try {
-    const fns = window._fbFns, auth = window._fbAuth, db = window._fbDb;
-    if (authMode === 'register') {
-      const cred = await fns.createUserWithEmailAndPassword(auth, email, pass);
-      if (name) await fns.updateProfile(cred.user, { displayName: name });
-      await fns.setDoc(fns.doc(db, 'users', cred.user.uid), {
-        displayName: name || email.split('@')[0],
-        email, createdAt: new Date().toISOString(),
-        completed: state.completed, points: state.points,
-        roadmapDone: state.roadmapDone, streak: state.streak,
-        lastDay: state.lastDay, lives: state.lives
-      });
-    } else {
-      await fns.signInWithEmailAndPassword(auth, email, pass);
+async function submitAuth(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-pass').value;
+  const name=document.getElementById('auth-name').value.trim();
+  const errEl=document.getElementById('auth-err');
+  errEl.textContent='';
+  if(!email||!pass){errEl.textContent='Completá email y contraseña.';return;}
+  const btn=document.getElementById('auth-submit-btn');
+  btn.textContent='Procesando...';btn.disabled=true;
+  try{
+    const fns=window._fbFns,auth=window._fbAuth,db=window._fbDb;
+    if(authMode==='register'){
+      const cred=await fns.createUserWithEmailAndPassword(auth,email,pass);
+      if(name)await fns.updateProfile(cred.user,{displayName:name});
+      await fns.setDoc(fns.doc(db,'users',cred.user.uid),{displayName:name||email.split('@')[0],email,createdAt:new Date().toISOString(),completed:state.completed,points:state.points,roadmapDone:state.roadmapDone,streak:state.streak,lastDay:state.lastDay,lives:state.lives});
+    }else{
+      await fns.signInWithEmailAndPassword(auth,email,pass);
     }
     document.getElementById('auth-modal').classList.remove('show');
-  } catch(e) {
-    const msgs = {
-      'auth/email-already-in-use': 'Ese email ya está registrado. Iniciá sesión.',
-      'auth/invalid-email': 'Email inválido.',
-      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-      'auth/user-not-found': 'No existe cuenta con ese email.',
-      'auth/wrong-password': 'Contraseña incorrecta.',
-      'auth/invalid-credential': 'Email o contraseña incorrectos.',
-    };
-    errEl.textContent = msgs[e.code] || 'Error: ' + e.message;
+  }catch(e){
+    const msgs={'auth/email-already-in-use':'Ese email ya está registrado. Iniciá sesión.','auth/invalid-email':'Email inválido.','auth/weak-password':'Mínimo 6 caracteres.','auth/user-not-found':'No existe cuenta con ese email.','auth/wrong-password':'Contraseña incorrecta.','auth/invalid-credential':'Email o contraseña incorrectos.'};
+    errEl.textContent=msgs[e.code]||'Error: '+e.message;
   }
-  btn.textContent = authMode === 'register' ? 'Crear cuenta' : 'Iniciar sesión';
-  btn.disabled = false;
+  btn.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';btn.disabled=false;
 }
-function showUserMenu() {
-  const user = window._fbUser;
-  if (!user) return;
-  const name = user.displayName || user.email;
-  if (confirm(`Sesión iniciada como ${name}\n\n¿Cerrar sesión?`)) {
-    window._fbFns.signOut(window._fbAuth);
-  }
+function showUserMenu(){
+  const user=window._fbUser;if(!user)return;
+  const name=user.displayName||user.email;
+  if(confirm(`Sesión iniciada como ${name}\n\n¿Cerrar sesión?`))window._fbFns.signOut(window._fbAuth);
 }
-function updateAuthUI(user) {
-  const hud = document.getElementById('user-hud');
-  if (!hud) return;
-  if (user) {
-    const name = user.displayName || user.email.split('@')[0];
-    hud.innerHTML = `✓ ${name} <span class="cloud-badge">☁ nube</span>`;
-    hud.classList.add('logged');
-    hud.onclick = showUserMenu;
-    // Refresh UI with cloud data
-    updatePts(); renderLives(); buildSidebar();
-  } else {
-    hud.innerHTML = '👤 Entrar';
-    hud.classList.remove('logged');
-    hud.onclick = openAuthModal;
+function updateAuthUI(user){
+  const hud=document.getElementById('user-hud');if(!hud)return;
+  if(user){
+    const name=user.displayName||user.email.split('@')[0];
+    hud.innerHTML=`✓ ${name} <span class="cloud-badge">☁ nube</span>`;
+    hud.classList.add('logged');hud.onclick=showUserMenu;
+    updatePts();renderLives();buildSidebar();
+  }else{
+    hud.innerHTML='👤 Entrar';hud.classList.remove('logged');hud.onclick=openAuthModal;
   }
 }
 
-// ══════════════════════════════════════════
-//  START
-// ══════════════════════════════════════════
+// ══ START ══
 function startApp(){
   document.getElementById('intro').style.display='none';
   document.getElementById('app-header').style.display='flex';
-  // Fix: don't touch view display — CSS handles it via .view / .view.active
   initCM();buildSidebar();updatePts();renderLives();updateStreak();
   let loaded=false;
   for(const m of CURRICULUM){
@@ -1962,13 +1702,10 @@ function startApp(){
   }
   if(!loaded)loadLesson(CURRICULUM[0].lessons[0]);
   loadPy();
-  // Show auth modal on first visit if no user
-  const hasVisited = localStorage.getItem('pq_visited');
-  if (!hasVisited && !window._fbUser) {
+  const hasVisited=localStorage.getItem('pq_visited');
+  if(!hasVisited&&!window._fbUser){
     localStorage.setItem('pq_visited','1');
-    setTimeout(() => {
-      if (!window._fbUser) document.getElementById('auth-modal').classList.add('show');
-    }, 1500);
+    setTimeout(()=>{if(!window._fbUser)document.getElementById('auth-modal').classList.add('show');},1500);
   }
 }
 </script>
