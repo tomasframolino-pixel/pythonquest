@@ -1781,12 +1781,23 @@ function typing(containerId){
   c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
 }
 async function callAI(system, messages){
-  const r=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system,messages})
+  const GEMINI_KEY = 'AIzaSyAJO4o2GG-hPhU1qLzInFAknofvDbBb2LM';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: system }] },
+      contents,
+      generationConfig: { maxOutputTokens: 600, temperature: 0.7 }
+    })
   });
-  const data=await r.json();
-  return data.content?.map(c=>c.text||'').join('')||'Error al conectar.';
+  const data = await r.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Error al conectar.';
 }
 
 // Challenge AI
